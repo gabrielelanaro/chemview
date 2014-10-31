@@ -19,6 +19,7 @@ require.config({
         'contextmenu': '/nbextensions/context',
         'TrackballControls' : '/nbextensions/TrackballControls',
         'chemview': '/nbextensions/chemview',
+        'marchingcubes': '/nbextensions/MarchingCubes',
     },
     shim: {
         three: {
@@ -26,7 +27,7 @@ require.config({
         },
 
         chemview: {
-            deps: ['three', 'TrackballControls'],
+            deps: ['three', 'TrackballControls', 'marchingcubes'],
             exports: 'MolecularViewer'
         },
 
@@ -43,6 +44,11 @@ require.config({
         jqueryui: {
             exports: "$"
         },
+
+        marchingcubes: {
+            deps: ['three'],
+            exports: "THREE.MarchingCubes",
+        },
     },
 });
 ''',
@@ -54,13 +60,13 @@ def enable_notebook():
 
     This function should be called before using TrajectoryWidget.
     """
-    libs = ['objexporter.js', 
+    libs = ['objexporter.js', 'MarchingCubes.js',
             'TrackballControls.js', 'filesaver.js',
             'base64-arraybuffer.js', 'context.js', 
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
             'context.standalone.css']
     fns = [resource_filename('chemview', os.path.join('static', f)) for f in libs]
-    install_nbextension(fns, verbose=0)
+    install_nbextension(fns, verbose=0, overwrite=True)
     display(_REQUIRE_CONFIG)
 
     widgets = ['chemview_widget.js']

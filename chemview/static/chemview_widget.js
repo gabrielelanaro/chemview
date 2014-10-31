@@ -8,6 +8,7 @@ require([
     "base64-arraybuffer", // provides decode
     'jqueryui',
     'TrackballControls',
+    'marchingcubes',
     ],
 function($, WidgetManager) {
     var HEIGHT = 600,
@@ -39,19 +40,22 @@ function($, WidgetManager) {
 
             var coords = this.model.get('_coordinates');
             var topology = this.model.get('topology');
-
-            var buffer = decode(coords['data']);
-            var view = new Float32Array(buffer);
  
-            var rep = new PointLineRepresentation(view,
+            var rep = new PointLineRepresentation(this.ndarrayToTypedArray(coords),
                                                   topology.bonds, 
                                                   this.model.get('color_scheme'));
             mv.addRepresentation(rep);
 
+            var surface = this.model.get('surface');
+
+            var surf = new SurfaceRepresentation(this.ndarrayToTypedArray(surface.vertices),
+                                                 this.ndarrayToTypedArray(surface.faces));
+            mv.addRepresentation(surf);
+
             this.update();
             
             this.pointRepresentation = rep;
-            mv.zoomInto(view);
+            mv.zoomInto(this.ndarrayToTypedArray(coords));
             mv.renderer.setSize(WIDTH, HEIGHT);
 
             this.setupFullScreen(canvas, container);
@@ -71,18 +75,15 @@ function($, WidgetManager) {
             if (this.model.hasChanged('_coordinates')) {
 
                 var coords = this.model.get('_coordinates');
-            
-                var buffer = decode(coords['data']);
-                var view = new Float32Array(buffer);
 
-                this.pointRepresentation.update({'coordinates': view});
+                this.pointRepresentation.update({coordinates: this.ndarrayToTypedArray(coords)});
                 this.mv.render();
                 console.log('Representation updated');
             }
 
             if (this.model.hasChanged('topology')) {
                 var bonds = this.model.get('topology').bonds;
-                this.pointRepresentation.update({'bonds': bonds});
+                this.pointRepresentation.update({bonds: bonds});
             }
 
             if (this.model.hasChanged('point_size')) {
@@ -129,6 +130,21 @@ function($, WidgetManager) {
                         }
                     });
             }
+        },
+
+        ndarrayToTypedArray: function (array) {
+            var buffer = decode(array['data']);
+
+            if (array['type'] == 'float32') {
+                return new Float32Array(buffer);
+            }
+            else if (array['type'] == 'int32') {
+                return new Int32Array(buffer);
+            }
+            else {
+                console.log('Type ' + array['type'] + ' is not supported');
+            }
+
         }
 
     });

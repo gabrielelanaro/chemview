@@ -37,7 +37,7 @@ class MolecularViewer(DOMWidget):
     # Other settings: for now we simply have all possible settings
     # we may organize it differently later
     point_size = CFloat(sync=True)
-
+    surface = Dict(sync=True)
 
     def __init__(self, topology, coordinates, **kwargs):
         '''

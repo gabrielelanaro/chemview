@@ -255,3 +255,39 @@ PointLineRepresentation.prototype = {
    		scene.add(this.lines);
    	},
 };
+
+var SurfaceRepresentation = function (verts, faces) {
+	/**
+	 * 
+	 */
+	var material = new THREE.MeshPhongMaterial( { color: 0Xffffff, 
+		                                          specular: 0xffffff, 
+		                                          shininess: 1 });
+	//var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
+	var geometry = new THREE.Geometry();
+
+	for (var i = 0; i < verts.length/3; i++) {
+		geometry.vertices.push(new THREE.Vector3(verts[i * 3 + 0],
+												 verts[i * 3 + 1], 
+												 verts[i * 3 + 2]));
+	}
+
+	for (var i = 0; i < faces.length/3; i++) {
+		geometry.faces.push(new THREE.Face3(faces[i * 3 + 0],
+											faces[i * 3 + 1], 
+											faces[i * 3 + 2]));
+	}
+
+	geometry.computeFaceNormals();
+	geometry.computeVertexNormals();
+	this.mesh = new THREE.Mesh(geometry, material);
+
+	this.addToScene = function(scene) {
+		scene.add(this.mesh);
+	};
+
+	this.update = function (data) {
+		// Nothing
+	};
+
+};
