@@ -19,6 +19,7 @@ function($, WidgetManager) {
     var MolecularView = IPython.DOMWidgetView.extend({
 
         render : function() {
+            console.log(this);
             var canvas = $("<canvas/>").height(HEIGHT).width(WIDTH);
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
@@ -130,6 +131,13 @@ function($, WidgetManager) {
                         }
                     });
             }
+        },
+
+        /** We receive custom messages from our conterpart */
+        on_msg: function(msg) {
+            console.log('receivedMsg');
+            console.log(msg);
+            return MolecularView.__super__.update.apply(this);
         },
 
         ndarrayToTypedArray: function (array) {

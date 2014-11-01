@@ -278,6 +278,7 @@ var SurfaceRepresentation = function (verts, faces) {
 											faces[i * 3 + 2]));
 	}
 
+    geometry.mergeVertices();
 	geometry.computeFaceNormals();
 	geometry.computeVertexNormals();
 	this.mesh = new THREE.Mesh(geometry, material);
