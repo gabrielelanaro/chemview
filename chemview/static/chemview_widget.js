@@ -39,24 +39,25 @@ function($, WidgetManager) {
             this.setElement(container);
 
 
-            var coords = this.model.get('_coordinates');
-            var topology = this.model.get('topology');
+            // var coords = this.model.get('_coordinates');
+            // var topology = this.model.get('topology');
  
-            var rep = new PointLineRepresentation(this.ndarrayToTypedArray(coords),
-                                                  topology.bonds, 
-                                                  this.model.get('color_scheme'));
-            mv.addRepresentation(rep);
+            // var rep = new PointLineRepresentation(this.ndarrayToTypedArray(coords),
+            //                                       topology.bonds, 
+            //                                       this.model.get('color_scheme'));
+            // mv.addRepresentation(rep);
 
-            var surface = this.model.get('surface');
+            // var surface = this.model.get('surface');
 
-            var surf = new SurfaceRepresentation(this.ndarrayToTypedArray(surface.vertices),
-                                                 this.ndarrayToTypedArray(surface.faces));
-            mv.addRepresentation(surf);
+            // var surf = new SurfaceRepresentation(this.ndarrayToTypedArray(surface.vertices),
+            //                                      this.ndarrayToTypedArray(surface.faces));
+            // mv.addRepresentation(surf);
 
-            this.update();
+            // this.update();
             
-            this.pointRepresentation = rep;
-            mv.zoomInto(this.ndarrayToTypedArray(coords));
+            // this.pointRepresentation = rep;
+
+            // mv.zoomInto(this.ndarrayToTypedArray(coords));
             mv.renderer.setSize(WIDTH, HEIGHT);
 
             this.setupFullScreen(canvas, container);
@@ -72,25 +73,25 @@ function($, WidgetManager) {
         update : function () {
 
             console.log('MolecularView.update');
-            this.mv.controls.handleResize();
-            if (this.model.hasChanged('_coordinates')) {
+            // this.mv.controls.handleResize();
+            // if (this.model.hasChanged('_coordinates')) {
 
-                var coords = this.model.get('_coordinates');
+            //     var coords = this.model.get('_coordinates');
 
-                this.pointRepresentation.update({coordinates: this.ndarrayToTypedArray(coords)});
-                this.mv.render();
-                console.log('Representation updated');
-            }
+            //     this.pointRepresentation.update({coordinates: this.ndarrayToTypedArray(coords)});
+            //     this.mv.render();
+            //     console.log('Representation updated');
+            // }
 
-            if (this.model.hasChanged('topology')) {
-                var bonds = this.model.get('topology').bonds;
-                this.pointRepresentation.update({bonds: bonds});
-            }
+            // if (this.model.hasChanged('topology')) {
+            //     var bonds = this.model.get('topology').bonds;
+            //     this.pointRepresentation.update({bonds: bonds});
+            // }
 
-            if (this.model.hasChanged('point_size')) {
-                this.pointRepresentation.update({point_size: this.model.get('point_size')});
-                this.mv.render();
-            }
+            // if (this.model.hasChanged('point_size')) {
+            //     this.pointRepresentation.update({point_size: this.model.get('point_size')});
+            //     this.mv.render();
+            // }
 
             return MolecularView.__super__.update.apply(this);
         },
@@ -137,7 +138,65 @@ function($, WidgetManager) {
         on_msg: function(msg) {
             console.log('receivedMsg');
             console.log(msg);
+
+            if (msg.type == 'callMethod') {
+                console.log(msg.args);
+                this[msg.methodName].call(this, msg.args);
+            }
+
             return MolecularView.__super__.update.apply(this);
+        },
+
+        addRepresentation : function (args) {
+            var type = args.type,
+                repId = args.repId,
+                options = args.options;
+            // Pre-process the options to convert numpy arrays or 
+            // other data structures
+            var that = this;
+            _.each(options, function(value, key) {
+                                if ("data" in value) {
+                                    // This is a numpy array
+                                    options[key] = that.ndarrayToTypedArray(value);
+                                }
+                            });
+
+
+            if (type == 'point') {
+                var rep = new PointLineRepresentation(options.coordinates, [], options.colors);
+                this.mv.zoomInto(options.coordinates);
+                this.mv.controls.handleResize();
+                this.mv.addRepresentation(rep, repId);
+            } else if (type == 'surface') {
+                var rep = new SurfaceRepresentation(options.verts, options.faces);
+                this.mv.addRepresentation(rep, repId);
+                this.mv.controls.handleResize();
+            } else {
+                console.log("Undefined representation " + type);
+            }
+
+            
+            this.mv.render();      
+        },
+
+        updateRepresentation : function (repId, options) {
+            // Updates a previously created representation
+
+            // Pre-process for numpy arrays
+            _.each(options, function(value, key) {
+                    if ("data" in value) {
+                        // This is a numpy array
+                        options[key] = ndarrayToTypedArray(value);
+                    }
+                });
+
+            var rep = this.mv.getRepresentation(repId);
+            rep.update(options);
+            this.mv.render();
+        },
+
+        removeRepresentation: function (repId) {
+
         },
 
         ndarrayToTypedArray: function (array) {

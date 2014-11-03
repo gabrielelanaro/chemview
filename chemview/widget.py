@@ -1,17 +1,20 @@
 from __future__ import absolute_import
 import base64
 from itertools import groupby
+from uuid import uuid4
 
 import numpy as np
+
 
 from IPython.display import display, Javascript
 from IPython.html.widgets import DOMWidget, IntSliderWidget, ContainerWidget
 from IPython.utils.traitlets import (Unicode, Bool, Bytes, CInt, Any,
                                      Dict, Enum, CFloat, List)
 
-__all__ = ['MolecularViewer']
+__all__ = ['RepresentationViewer', 'MolecularViewer']
 
-class MolecularViewer(DOMWidget):
+
+class RepresentationViewer(DOMWidget):
 
     # Name of the javascript class which this widget syncs against on the
     # browser side. To work correctly, this javascript class has to be
@@ -19,43 +22,23 @@ class MolecularViewer(DOMWidget):
     # (that's what enable_notebook() does)
     _view_name = Unicode('MolecularView', sync=True)
 
-    # The essence of the IPython interactive widget API on the python side is
-    # that by declaring traitlets with sync=True, these variables are
-    # automatically synced by the IPython runtime between this class in Python
-    # and the browser-side model. Changes to these attributes are propagated
-    # automatically to the browser (and changes on the browser side can trigger
-    # events on this class too, although we're not using that feature).
-    
-    # We need two coodinates for serialization purposes
-    coordinates = Any()
-    _coordinates = Dict(sync=True)
 
-    topology = Dict(sync=True)
-
-    color_scheme = List(sync=True)
-    
-    # Other settings: for now we simply have all possible settings
-    # we may organize it differently later
-    point_size = CFloat(sync=True)
-    surface = Dict(sync=True)
-
-    def __init__(self, topology, coordinates, **kwargs):
+    def __init__(self):
         '''
-
-        topology:
-            atom_types: the atom types represented
-            bonds: the bonds between atom as a numpy array between indices
-
-        Settings:
-
-        PointLineRenderer:
-             point_size
+        RepresentationViewer is a general purpose 3D viewer. It acceps a 
+        variety of representations that are useful (but not limited to)
+        to display molecular systems.
 
         '''
-        super(MolecularViewer, self).__init__(**kwargs)
+        super(RepresentationViewer, self).__init__()
+        self.displayed = False
 
-        self.coordinates = coordinates
-        self.topology = topology
+        # Things to be called when the js harnessing is intialized
+        self._displayed_callbacks = []
+        def callback(widget):
+            for cb in widget._displayed_callbacks:
+                cb(widget)
+        self.on_displayed(callback)
 
     def _coordinates_changed(self, name, old, new):
         self._coordinates = encode_numpy(new)
@@ -63,6 +46,116 @@ class MolecularViewer(DOMWidget):
     def _topology_changed(self, name, old, new):
         self.color_scheme = [get_atom_color(atom_type) 
                              for atom_type in new['atom_types']]
+
+    def add_representation(self, rep_type, options):
+        '''Add a 3d representation to the viewer.
+
+        Representations:
+
+        'point':
+            accepts coordinates, colors, bonds
+
+        'surface':
+            accepts a triangles and faces
+
+        '''
+        # Add our unique id to be able to refer to the representation
+        rep_id = uuid4().hex
+        self._remote_call('addRepresentation', type=rep_type, repId=rep_id, options=options)
+        return rep_id
+
+    def remove_representation(self, rep_id):
+        self._remote_call('removeRepresentation', type=rep_type)
+
+    def update_representation(self, rep_id, options):
+        self._remote_call('updateRepresentation', repId=rep_id, options=options)
+
+    def _remote_call(self, method_name, **kwargs):
+        '''Call a method remotely on the javascript side'''
+        msg = {}
+        msg['type'] = 'callMethod'
+        msg['methodName'] = method_name
+        msg['args'] = self._recursive_serialize(kwargs)
+
+        if self.displayed is True:
+            self.send(msg) # This will be received with View.on_msg
+        else:
+            # We should prepare a callback to be 
+            # called when widget is displayed
+            def callback(widget, msg=msg):
+                widget.send(msg)
+                widget.on_displayed(callback, remove=True) # Auto-unbind
+
+            self._displayed_callbacks.append(callback)
+
+    def _recursive_serialize(self, dictionary):
+        '''Serialize a dictionary inplace'''
+        for k, v in dictionary.iteritems():
+            if isinstance(v, dict):
+                self._recursive_serialize(v)
+            else:
+                # This is when custom serialization happens
+                if isinstance(v, np.ndarray):
+                    dictionary[k] = encode_numpy(v)
+        return dictionary
+
+    def _ipython_display_(self, **kwargs):
+        super(RepresentationViewer, self)._ipython_display_(**kwargs)
+        self.displayed = True
+
+
+class MolecularViewer(RepresentationViewer):
+
+    def __init__(self, coordinates, atom_types, representations=['point']):
+        super(MolecularViewer, self).__init__()
+        self.coordinates = coordinates
+        self.atom_types = atom_types
+        self.representations_id = []
+        self.representation_types = []
+
+        self.add_points()
+
+    def add_points(self):
+        rep_id = self.add_representation('point', {'coordinates': self.coordinates.astype('float32'),
+                                         'colors': [get_atom_color(a) for a in self.atom_types]})
+        self.representations_id.append(rep_id)
+        self.representation_types.append('point')
+
+    def add_vdw_surface(self, resolution=32):
+        # Let's try the surface
+        from .marchingcubes import marching_cubes
+        radii = [0.3] * len(self.atom_types)
+
+        area_min = np.array([-5.0, -5.0, -5.0])
+        area_max = np.array([5.0, 5.0, 5.0])
+        
+        x = np.linspace(area_min[0], area_max[0], resolution)
+        y = np.linspace(area_min[1], area_max[1], resolution)
+        z = np.linspace(area_min[2], area_max[2], resolution)
+        
+        xv, yv, zv = np.meshgrid(x, y, z)
+        
+        # First we create the metaballs
+        f = np.zeros((x.shape[0], y.shape[0], y.shape[0]))
+        for r, c in zip(radii, self.coordinates):
+            f += r**2 / ((xv-c[0])**2 + (yv-c[1])**2 + (zv-c[2])**2)
+        
+        spacing = tuple((area_max - area_min)/resolution)
+        triangles = marching_cubes(f, 1)
+        
+        faces = []
+        verts = []
+        for i, t in enumerate(triangles):
+            faces.append([i * 3, i * 3 +1, i * 3 +2])
+            verts.extend(t)
+        
+        faces = np.array(faces)
+        verts = area_min + np.array(verts)*spacing
+        rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
+                                                     'faces': faces.astype('int32')})
+
+        self.representations_id.append(rep_id)
+        self.representation_types.append('surface')
 
 # Utility functions
 

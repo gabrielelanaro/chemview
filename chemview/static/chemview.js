@@ -68,13 +68,15 @@ var MolecularViewer = function ($el) {
 	this.controls.keys = [ 65, 83, 68 ];
 	this.controls.addEventListener( 'change', this.render.bind(this));
 
+    this.representations = {};
 	this.render();
 };
 
 MolecularViewer.prototype = {
     
-    addRepresentation: function (representation) {
+    addRepresentation: function (representation, repId) {
     	representation.addToScene(this.scene);
+        this.representations[repId] = representation;
     },
 
     render: function () {

@@ -39,14 +39,14 @@ def marching_cubes(field, isolevel):
                 }
                 # Which kind of cube is this guy?
                 cube_index = 0
-                if field[points[0]] < isolevel: cube_index |= 1
-                if field[points[1]] < isolevel: cube_index |= 2
-                if field[points[2]] < isolevel: cube_index |= 4
-                if field[points[3]] < isolevel: cube_index |= 8
-                if field[points[4]] < isolevel: cube_index |= 16
-                if field[points[5]] < isolevel: cube_index |= 32
-                if field[points[6]] < isolevel: cube_index |= 64
-                if field[points[7]] < isolevel: cube_index |= 128
+                if field[points[0]] > isolevel: cube_index |= 1
+                if field[points[1]] > isolevel: cube_index |= 2
+                if field[points[2]] > isolevel: cube_index |= 4
+                if field[points[3]] > isolevel: cube_index |= 8
+                if field[points[4]] > isolevel: cube_index |= 16
+                if field[points[5]] > isolevel: cube_index |= 32
+                if field[points[6]] > isolevel: cube_index |= 64
+                if field[points[7]] > isolevel: cube_index |= 128
 
                 # Get the faces from the cube
 

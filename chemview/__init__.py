@@ -1,2 +1,2 @@
 from .install import enable_notebook
-from .widget import MolecularViewer
+from .widget import RepresentationViewer
