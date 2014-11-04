@@ -73,25 +73,6 @@ function($, WidgetManager) {
         update : function () {
 
             console.log('MolecularView.update');
-            // this.mv.controls.handleResize();
-            // if (this.model.hasChanged('_coordinates')) {
-
-            //     var coords = this.model.get('_coordinates');
-
-            //     this.pointRepresentation.update({coordinates: this.ndarrayToTypedArray(coords)});
-            //     this.mv.render();
-            //     console.log('Representation updated');
-            // }
-
-            // if (this.model.hasChanged('topology')) {
-            //     var bonds = this.model.get('topology').bonds;
-            //     this.pointRepresentation.update({bonds: bonds});
-            // }
-
-            // if (this.model.hasChanged('point_size')) {
-            //     this.pointRepresentation.update({point_size: this.model.get('point_size')});
-            //     this.mv.render();
-            // }
 
             return MolecularView.__super__.update.apply(this);
         },
@@ -155,7 +136,7 @@ function($, WidgetManager) {
             // other data structures
             var that = this;
             _.each(options, function(value, key) {
-                                if ("data" in value) {
+                                if (typeof value == 'object' && 'data' in value) {
                                     // This is a numpy array
                                     options[key] = that.ndarrayToTypedArray(value);
                                 }
@@ -171,7 +152,11 @@ function($, WidgetManager) {
                 var rep = new SurfaceRepresentation(options.verts, options.faces);
                 this.mv.addRepresentation(rep, repId);
                 this.mv.controls.handleResize();
-            } else {
+            } else if (type == 'spheres') {
+                var rep = new SphereRepresentation(options.coordinates, options.radii, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+            } 
+            else {
                 console.log("Undefined representation " + type);
             }
 
@@ -179,24 +164,29 @@ function($, WidgetManager) {
             this.mv.render();      
         },
 
-        updateRepresentation : function (repId, options) {
+        updateRepresentation : function (args) {
             // Updates a previously created representation
+            var repId = args.repId,
+                options = args.options;
 
             // Pre-process for numpy arrays
+            var that = this;
             _.each(options, function(value, key) {
-                    if ("data" in value) {
+                    if (typeof value == 'object' && 'data' in value) {
                         // This is a numpy array
-                        options[key] = ndarrayToTypedArray(value);
+                        options[key] = that.ndarrayToTypedArray(value);
                     }
                 });
 
+            console.log(repId);
+            console.log(repId);
             var rep = this.mv.getRepresentation(repId);
             rep.update(options);
             this.mv.render();
         },
 
         removeRepresentation: function (repId) {
-
+            // TODO: implement removal so we are complete
         },
 
         ndarrayToTypedArray: function (array) {

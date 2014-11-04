@@ -79,6 +79,9 @@ MolecularViewer.prototype = {
         this.representations[repId] = representation;
     },
 
+    getRepresentation: function (repId) {
+        return this.representations[repId];
+    },
     render: function () {
     	if (this.controls.screen.width == 0 || this.controls.screen.height == 0)
     		this.controls.handleResize();
@@ -264,8 +267,10 @@ var SurfaceRepresentation = function (verts, faces) {
 	 */
 	var material = new THREE.MeshPhongMaterial( { color: 0Xffffff, 
 		                                          specular: 0xffffff, 
-		                                          shininess: 1 });
-	//var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
+		                                          shininess: 1 ,
+                                                  opacity: 0.5,
+                                                  transparent: true});
+	var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
 	var geometry = new THREE.Geometry();
 
 	for (var i = 0; i < verts.length/3; i++) {
@@ -294,3 +299,51 @@ var SurfaceRepresentation = function (verts, faces) {
 	};
 
 };
+
+
+var SphereRepresentation = function (coordinates, radii, resolution) {
+
+    if (resolution == undefined)
+        resolution = 16;
+
+    var sphereTemplate = new THREE.SphereGeometry(1, resolution, resolution); // Our template
+
+    // We want to have a single geometry to be updated, for speed reasons
+    var geometry = new THREE.Geometry();
+    for (var i=0; i < coordinates.length/3; i ++) {
+        for (var j=0; j < sphereTemplate.vertices.length; j++){
+            var vertex = new THREE.Vector3();
+
+            vertex.copy(sphereTemplate.vertices[j]);
+            vertex.multiplyScalar(radii[i]);
+            vertex.add(new THREE.Vector3(coordinates[3 * i + 0],
+                                         coordinates[3 * i + 1],
+                                         coordinates[3 * i + 2]));
+            geometry.vertices.push(vertex);
+            //geometry.normals.push(sphereTemplate.vertices[j]);
+        }
+
+        for (var j=0; j < sphereTemplate.faces.length; j++) {
+            var face = sphereTemplate.faces[j].clone();
+            face.a += sphereTemplate.vertices.length * i;
+            face.b += sphereTemplate.vertices.length * i;
+            face.c += sphereTemplate.vertices.length * i;
+
+            geometry.faces.push(face);
+        }
+            
+    }
+    geometry.computeFaceNormals();
+    geometry.computeVertexNormals();
+
+    var material = new THREE.MeshBasicMaterial({wireframe: true, color: 0x00ffff});
+    this.mesh = new THREE.Mesh(geometry, material);
+
+    this.addToScene = function (scene) {
+        scene.add(this.mesh);
+    }
+
+    this.update = function(options) {
+        // nothing
+    };
+}

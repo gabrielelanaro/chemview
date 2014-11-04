@@ -124,7 +124,7 @@ class MolecularViewer(RepresentationViewer):
     def add_vdw_surface(self, resolution=32):
         # Let's try the surface
         from .marchingcubes import marching_cubes
-        radii = [0.3] * len(self.atom_types)
+        radii = [0.15] * len(self.atom_types)
 
         area_min = np.array([-5.0, -5.0, -5.0])
         area_max = np.array([5.0, 5.0, 5.0])
@@ -135,13 +135,15 @@ class MolecularViewer(RepresentationViewer):
         
         xv, yv, zv = np.meshgrid(x, y, z)
         
+        blobbiness = -1
         # First we create the metaballs
         f = np.zeros((x.shape[0], y.shape[0], y.shape[0]))
         for r, c in zip(radii, self.coordinates):
-            f += r**2 / ((xv-c[0])**2 + (yv-c[1])**2 + (zv-c[2])**2)
+            f += np.exp(blobbiness * 
+                (((xv-c[0])**2 + (yv-c[1])**2 + (zv-c[2])**2)/r**2 - 1))
         
         spacing = tuple((area_max - area_min)/resolution)
-        triangles = marching_cubes(f, 1)
+        triangles = marching_cubes(f - 1, 0)
         
         faces = []
         verts = []

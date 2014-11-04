@@ -39,14 +39,14 @@ def marching_cubes(field, isolevel):
                 }
                 # Which kind of cube is this guy?
                 cube_index = 0
-                if field[points[0]] > isolevel: cube_index |= 1
-                if field[points[1]] > isolevel: cube_index |= 2
-                if field[points[2]] > isolevel: cube_index |= 4
-                if field[points[3]] > isolevel: cube_index |= 8
-                if field[points[4]] > isolevel: cube_index |= 16
-                if field[points[5]] > isolevel: cube_index |= 32
-                if field[points[6]] > isolevel: cube_index |= 64
-                if field[points[7]] > isolevel: cube_index |= 128
+                if field[points[0]] < isolevel: cube_index |= 1
+                if field[points[1]] < isolevel: cube_index |= 2
+                if field[points[2]] < isolevel: cube_index |= 4
+                if field[points[3]] < isolevel: cube_index |= 8
+                if field[points[4]] < isolevel: cube_index |= 16
+                if field[points[5]] < isolevel: cube_index |= 32
+                if field[points[6]] < isolevel: cube_index |= 64
+                if field[points[7]] < isolevel: cube_index |= 128
 
                 # Get the faces from the cube
 
@@ -61,7 +61,10 @@ def marching_cubes(field, isolevel):
                                                          isolevel)
                         triangle.append(v)
                     triangles.append(triangle)
-    return np.array(triangles)
+    triangles = np.array(triangles)
+    # TODO Let's just invert for now, but no one knows what the problem is
+    triangles[:, :, [0, 1]] = triangles[:, :, [1, 0]]
+    return triangles
 
 def interpolate_edge_coordinates(point1, value1, point2, value2, isolevel):
     return point1 + (isolevel - value1) * (point2 - point1)/(value2 - value1)
