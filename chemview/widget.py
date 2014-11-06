@@ -65,7 +65,7 @@ class RepresentationViewer(DOMWidget):
         return rep_id
 
     def remove_representation(self, rep_id):
-        self._remote_call('removeRepresentation', type=rep_type)
+        self._remote_call('removeRepresentation', repId=rep_id)
 
     def update_representation(self, rep_id, options):
         self._remote_call('updateRepresentation', repId=rep_id, options=options)
@@ -106,18 +106,22 @@ class RepresentationViewer(DOMWidget):
 
 class MolecularViewer(RepresentationViewer):
 
+    
     def __init__(self, coordinates, atom_types, representations=['point']):
         super(MolecularViewer, self).__init__()
-        self.coordinates = coordinates
-        self.atom_types = atom_types
+
         self.representations_id = []
         self.representation_types = []
 
+        self.coordinates = coordinates
+        self.atom_types = atom_types
+        
         self.add_points()
 
     def add_points(self):
         rep_id = self.add_representation('point', {'coordinates': self.coordinates.astype('float32'),
-                                         'colors': [get_atom_color(a) for a in self.atom_types]})
+                                                   'colors': [get_atom_color(a) for a in self.atom_types],
+                                                   'sizes': [0.5] * len(self.atom_types)})
         self.representations_id.append(rep_id)
         self.representation_types.append('point')
 
@@ -126,9 +130,10 @@ class MolecularViewer(RepresentationViewer):
         from .marchingcubes import marching_cubes
         radii = [0.15] * len(self.atom_types)
 
-        area_min = np.array([-5.0, -5.0, -5.0])
-        area_max = np.array([5.0, 5.0, 5.0])
-        
+        # We contain the whole thing
+        area_min = self.coordinates.min(axis=0) - 0.5
+        area_max = self.coordinates.max(axis=0) + 0.5
+
         x = np.linspace(area_min[0], area_max[0], resolution)
         y = np.linspace(area_min[1], area_max[1], resolution)
         z = np.linspace(area_min[2], area_max[2], resolution)
@@ -156,8 +161,57 @@ class MolecularViewer(RepresentationViewer):
         rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
                                                      'faces': faces.astype('int32')})
 
+        self.vdw_id = rep_id
         self.representations_id.append(rep_id)
         self.representation_types.append('surface')
+
+    def remove_vdw_surface(self):
+        if hasattr(self, 'vdw_id'):
+            self.remove_representation(self.vdw_id)
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, value):
+        self._coordinates = value
+
+        for rep_id in self.representations_id:
+            self.update_representation(rep_id, {'coordinates': value.astype('float32')})
+
+
+class AnimationViewer(MolecularViewer):
+    '''
+    Animate those frames
+    '''
+
+    def __init__(self, coordinates, atom_types, frames):
+        super(AnimationViewer, self).__init__(coordinates, atom_types)
+        self.frames = range(frames)
+
+        self.slider = IntSliderWidget(min=0, max=len(self.frames)-1, step=1)
+        self.frame = 0
+        self.slider.on_trait_change(self._on_frame_changed, 'value')
+
+    def update(self, frame):
+        # To override
+        pass
+
+    @property
+    def frame(self):
+        return self.slider.value
+
+    @frame.setter
+    def frame(self, value):
+        self.slider.value = value
+
+    def _on_frame_changed(self, name, old, new):
+        self.update(self.slider.value)
+
+    def _ipython_display_(self):
+        super(AnimationViewer, self)._ipython_display_()
+        display(self.slider)
 
 # Utility functions
 

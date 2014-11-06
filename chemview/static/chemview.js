@@ -82,6 +82,12 @@ MolecularViewer.prototype = {
     getRepresentation: function (repId) {
         return this.representations[repId];
     },
+
+    removeRepresentation: function (repId) {
+        var rep = this.getRepresentation(repId);
+        rep.removeFromScene(this.scene);
+    },
+
     render: function () {
     	if (this.controls.screen.width == 0 || this.controls.screen.height == 0)
     		this.controls.handleResize();
@@ -144,21 +150,47 @@ MolecularViewer.prototype = {
 	},
 };
 
+/** 
+ * Represents a set of coordinates as points.
+ * 
+ * @param coordinates: a (flattened) Float32Array of coordinates in 3D space
+ * @param bonds: a (flattened) Int32Array of bonds, represented as 
+ *                indices that connects two coordinates
+ * @param colors: a list of colors (one for each point) expressed as hexadecimal numbers
+ * @param sizes: a list of sizes for the points
+ */
+var PointLineRepresentation = function (coordinates, bonds, colors, sizes) {
 
-var PointLineRepresentation = function (coordinates, bonds, colors) {
-	// We take Float32 arrays cuz they're faster
+    var DEFAULT_SIZE = 0.15,
+        DEFAULT_COLOR = 0xffffff;
+
+    // pre-processing for optional arguments
+    if (sizes == undefined) {
+        var sizes = [];
+        for (var i=0; i < coordinates.length/3; i++) {
+            sizes.push(DEFAULT_SIZE);
+        }
+    }
+
+    if (colors == undefined) {
+        var colors = [];
+        for (var i=0; i < coordinates.length/3; i++) {
+            colors.push(DEFAULT_COLOR);
+        }
+    }
+
+    if (bonds == undefined) {
+        var bonds = [];
+    }
 
 	// That is the points part
 	var geo = new THREE.Geometry();
-	var mat = new THREE.PointCloudMaterial({
-      					color: 0xFFFFFF,
-      					size: 0.1,
-      					fog: true,
-    				});
+    this.geometry = geo;
 
 	var attributes = {
 
-        color: { type: 'c', value: [] },
+        color: { type: 'c', value: []},
+        pointSize: { type: 'f', value: sizes},
 
     };
 
@@ -171,18 +203,16 @@ var PointLineRepresentation = function (coordinates, bonds, colors) {
 		attributes.color.value.push(new THREE.Color(colors[p]));
 	}
 
-	this.geometry = geo;
-	this.material = mat;
-
+	
 	var vertex_shader = "\
-		uniform float pointSize;\
 	    attribute vec3 color;\
+        attribute float pointSize;\
 	    varying vec3 vColor;\
     	\
     	void main() {\
        		vColor = color;\
         	vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-        	gl_PointSize = pointSize *( 150.0 / length( mvPosition.xyz ));\
+        	gl_PointSize = pointSize * ( 150.0 / length( mvPosition.xyz ));\
         	gl_Position = projectionMatrix * mvPosition;\
     	}\
     ";
@@ -200,12 +230,12 @@ var PointLineRepresentation = function (coordinates, bonds, colors) {
 
 
     var shaderMaterial = new THREE.ShaderMaterial( {
-        uniforms:       { pointSize: {type: "f", value: 1.0} },
         attributes:     attributes,
         vertexShader:   vertex_shader,
         fragmentShader: fragment_shader,
         transparent:    false
     });
+    this.material = shaderMaterial;
 
 	this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
 
@@ -232,6 +262,11 @@ var PointLineRepresentation = function (coordinates, bonds, colors) {
 
 PointLineRepresentation.prototype = {
 
+    /** Update the representation with other data
+     * Updates supported:
+     * - coordinates
+     * - sizes
+     */
     update: function (data) {
 
     	var coordinates = data.coordinates;
@@ -249,8 +284,9 @@ PointLineRepresentation.prototype = {
 
 	    }
 
-	    if (data.point_size != undefined) {
-	    	this.particleSystem.material.uniforms.pointSize.value = data.point_size;
+	    if (data.sizes != undefined) {
+            this.particleSystem.material.attributes.pointSize.value = data.sizes;
+            this.particleSystem.material.attributes.pointSize.needsUpdate = true;  
 	    }
 
     },
@@ -259,18 +295,31 @@ PointLineRepresentation.prototype = {
    		scene.add(this.particleSystem);
    		scene.add(this.lines);
    	},
+
+    removeFromScene: function(scene) {
+        scene.remove(this.particleSystem);
+        scene.remove(this.lines);
+    },
 };
 
-var SurfaceRepresentation = function (verts, faces) {
-	/**
-	 * 
-	 */
-	var material = new THREE.MeshPhongMaterial( { color: 0Xffffff, 
-		                                          specular: 0xffffff, 
-		                                          shininess: 1 ,
-                                                  opacity: 0.5,
-                                                  transparent: true});
-	var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
+\/**
+  *  SurfaceRepresentation displays a surface
+  */
+var SurfaceRepresentation = function (verts, faces, style) {
+
+    var DEFAULT_STYLE = "wireframe";
+    var style = style != undefined ? style : DEFAULT_STYLE;
+
+    if (style == "solid") {
+        var material = new THREE.MeshPhongMaterial( { color: 0Xffffff, 
+                                                      specular: 0xffffff, 
+                                                      shininess: 1});
+    }
+
+    if (style == "wireframe") {
+        var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
+    }
+
 	var geometry = new THREE.Geometry();
 
 	for (var i = 0; i < verts.length/3; i++) {
@@ -297,6 +346,10 @@ var SurfaceRepresentation = function (verts, faces) {
 	this.update = function (data) {
 		// Nothing
 	};
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.mesh);
+    };
 
 };
 
@@ -345,5 +398,9 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
 
     this.update = function(options) {
         // nothing
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.mesh);
     };
 }

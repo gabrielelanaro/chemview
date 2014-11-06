@@ -144,12 +144,12 @@ function($, WidgetManager) {
 
 
             if (type == 'point') {
-                var rep = new PointLineRepresentation(options.coordinates, [], options.colors);
+                var rep = new PointLineRepresentation(options.coordinates, options.bonds, options.colors, options.sizes);
                 this.mv.zoomInto(options.coordinates);
                 this.mv.controls.handleResize();
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'surface') {
-                var rep = new SurfaceRepresentation(options.verts, options.faces);
+                var rep = new SurfaceRepresentation(options.verts, options.faces, options.style);
                 this.mv.addRepresentation(rep, repId);
                 this.mv.controls.handleResize();
             } else if (type == 'spheres') {
@@ -178,15 +178,14 @@ function($, WidgetManager) {
                     }
                 });
 
-            console.log(repId);
-            console.log(repId);
             var rep = this.mv.getRepresentation(repId);
             rep.update(options);
             this.mv.render();
         },
 
-        removeRepresentation: function (repId) {
-            // TODO: implement removal so we are complete
+        removeRepresentation: function (args) {
+            this.mv.removeRepresentation(args.repId);
+            this.mv.render();
         },
 
         ndarrayToTypedArray: function (array) {

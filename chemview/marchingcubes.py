@@ -1,6 +1,6 @@
 # A marching cube test
 import numpy as np
-
+import numba as nb
 def make_field():
     # We want to make a spherical field
     subdivision = 32
@@ -19,6 +19,7 @@ def make_field():
 
     return f
 
+@nb.jit('pyobject(f4[:, :, :], f4)')
 def marching_cubes(field, isolevel):
     # The field is like gridpoints, and gridpoints define cubes. 
     triangles = []
@@ -61,11 +62,12 @@ def marching_cubes(field, isolevel):
                                                          isolevel)
                         triangle.append(v)
                     triangles.append(triangle)
-    triangles = np.array(triangles)
+    triangles_ = np.array(triangles) # triangles_ NUMBA BUG
     # TODO Let's just invert for now, but no one knows what the problem is
-    triangles[:, :, [0, 1]] = triangles[:, :, [1, 0]]
-    return triangles
+    triangles_[:, :, [0, 1]] = triangles_[:, :, [1, 0]]
+    return triangles_
 
+@nb.jit
 def interpolate_edge_coordinates(point1, value1, point2, value2, isolevel):
     return point1 + (isolevel - value1) * (point2 - point1)/(value2 - value1)
 
