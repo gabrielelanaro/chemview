@@ -302,7 +302,7 @@ PointLineRepresentation.prototype = {
     },
 };
 
-\/**
+/**
   *  SurfaceRepresentation displays a surface
   */
 var SurfaceRepresentation = function (verts, faces, style) {
@@ -404,3 +404,92 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
         scene.remove(this.mesh);
     };
 }
+
+/** Draw a single box in the viewer (useful for bounding boxes and alike) */
+var BoxRepresentation = function(start, end, color) {
+    var geometry = new THREE.Geometry();
+    var vS = new THREE.Vector3(start[0], start[1], start[2]);
+    var vE = new THREE.Vector3(end[0], end[1], end[2]);
+
+    geometry.vertices.push(vS);
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vS.z));
+
+    geometry.vertices.push(vS);
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vS.z));
+    
+    geometry.vertices.push(vS);
+    geometry.vertices.push(new THREE.Vector3(vS.x, vS.y, vE.z));
+
+    geometry.vertices.push(vE);
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vE.z));
+
+    geometry.vertices.push(vE);
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vE.z));
+
+    geometry.vertices.push(vE);
+    geometry.vertices.push(new THREE.Vector3(vE.x, vE.y, vS.z));
+
+    geometry.vertices.push(new THREE.Vector3(vE.x, vE.y, vS.z));
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vS.z));
+
+    geometry.vertices.push(new THREE.Vector3(vE.x, vE.y, vS.z));
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vS.z));
+
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vE.z));
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vS.z));
+
+    geometry.vertices.push(new THREE.Vector3(vE.x, vS.y, vE.z));
+    geometry.vertices.push(new THREE.Vector3(vS.x, vS.y, vE.z));
+
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vE.z));
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vS.z));
+
+    geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vE.z));
+    geometry.vertices.push(new THREE.Vector3(vS.x, vS.y, vE.z));
+    
+    var material = new THREE.LineBasicMaterial( {color: color} );
+    var cube = new THREE.Line( geometry, material, THREE.LinePieces );
+    this.cube = cube;
+
+    this.addToScene = function(scene) {
+        scene.add( this.cube );
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove( this.cube );
+    };
+
+    this.update = function (options) {};
+}
+
+
+// var SmoothLineRepresentation = function (coordinates, colors, resolution) {
+//     // pass
+
+//     var vertices = this.subdivide(coordinates, resolution);
+
+//     this.subdivide = function () {
+//         /** Adapted from iview */
+//         if (div == 1) return points;
+//         var ret = [], divInv = 1.0 / div, len = points.length;
+//         for (var i = -1; i <= len - 3; ++i) {
+//             var p0 = points[i == -1 ? 0 : i];
+//             var p1 = points[i + 1];
+//             var p2 = points[i + 2];
+//             var p3 = points[i == len - 3 ? len - 1 : i + 3];
+//             var v0 = p2.clone().sub(p0).multiplyScalar(0.5);
+//             var v1 = p3.clone().sub(p1).multiplyScalar(0.5);
+//             var v2 = p2.clone().sub(p1);
+//             for (var j = 0; j < div; ++j) {
+//                 var t = divInv * j;
+//                 ret.push(p1.clone().add(v0.clone().multiplyScalar(t)).add((v2.clone().multiplyScalar(3).sub(v0.clone().multiplyScalar(2)).sub(v1)).multiplyScalar(t * t)).add((v2.clone().multiplyScalar(-2).add(v0).add(v1)).multiplyScalar(t * t * t)));
+// //              ret.push(new THREE.Vector3(
+// //                  p1.x + t * v0.x + t * t * (-3 * p1.x + 3 * p2.x - 2 * v0.x - v1.x) + t * t * t * (2 * p1.x - 2 * p2.x + v0.x + v1.x),
+// //                  p1.y + t * v0.y + t * t * (-3 * p1.y + 3 * p2.y - 2 * v0.y - v1.y) + t * t * t * (2 * p1.y - 2 * p2.y + v0.y + v1.y),
+// //                  p1.z + t * v0.z + t * t * (-3 * p1.z + 3 * p2.z - 2 * v0.z - v1.z) + t * t * t * (2 * p1.z - 2 * p2.z + v0.z + v1.z)));
+//             }
+//         }
+//         ret.push(points[len - 1]);
+//         return ret;
+//     }
+// }

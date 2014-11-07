@@ -106,12 +106,10 @@ class RepresentationViewer(DOMWidget):
 
 class MolecularViewer(RepresentationViewer):
 
-    
-    def __init__(self, coordinates, atom_types, representations=['point']):
+    def __init__(self, coordinates, atom_types):
         super(MolecularViewer, self).__init__()
 
-        self.representations_id = []
-        self.representation_types = []
+        self.representations = {}
 
         self.coordinates = coordinates
         self.atom_types = atom_types
@@ -119,20 +117,36 @@ class MolecularViewer(RepresentationViewer):
         self.add_points()
 
     def add_points(self):
+
+        if 'points' in self.representations:
+            self.remove_representation(self.representations['points'])
+
         rep_id = self.add_representation('point', {'coordinates': self.coordinates.astype('float32'),
                                                    'colors': [get_atom_color(a) for a in self.atom_types],
                                                    'sizes': [0.5] * len(self.atom_types)})
-        self.representations_id.append(rep_id)
-        self.representation_types.append('point')
 
-    def add_vdw_surface(self, resolution=32):
+        self.representations['points'] = rep_id 
+
+    def add_vdw_surface(self, resolution=32, mask=None):
+        if 'vdw' in self.representations:
+            self.remove_representation(self.representations['vdw'])
+
         # Let's try the surface
         from .marchingcubes import marching_cubes
-        radii = [0.15] * len(self.atom_types)
+
+        if mask is not None:
+            # Do the surface on a subset
+            coordinates = self.coordinates[mask]
+            atom_types = self.atom_types[mask]
+        else:
+            coordinates = self.coordinates
+            atom_types = self.atom_types
+
+        radii = [0.15] * len(atom_types)
 
         # We contain the whole thing
-        area_min = self.coordinates.min(axis=0) - 0.5
-        area_max = self.coordinates.max(axis=0) + 0.5
+        area_min = coordinates.min(axis=0) - 0.5
+        area_max = coordinates.max(axis=0) + 0.5
 
         x = np.linspace(area_min[0], area_max[0], resolution)
         y = np.linspace(area_min[1], area_max[1], resolution)
@@ -143,7 +157,7 @@ class MolecularViewer(RepresentationViewer):
         blobbiness = -1
         # First we create the metaballs
         f = np.zeros((x.shape[0], y.shape[0], y.shape[0]))
-        for r, c in zip(radii, self.coordinates):
+        for r, c in zip(radii, coordinates):
             f += np.exp(blobbiness * 
                 (((xv-c[0])**2 + (yv-c[1])**2 + (zv-c[2])**2)/r**2 - 1))
         
@@ -161,13 +175,7 @@ class MolecularViewer(RepresentationViewer):
         rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
                                                      'faces': faces.astype('int32')})
 
-        self.vdw_id = rep_id
-        self.representations_id.append(rep_id)
-        self.representation_types.append('surface')
-
-    def remove_vdw_surface(self):
-        if hasattr(self, 'vdw_id'):
-            self.remove_representation(self.vdw_id)
+        self.representations['vdw'] = rep_id
 
     @property
     def coordinates(self):
@@ -177,7 +185,7 @@ class MolecularViewer(RepresentationViewer):
     def coordinates(self, value):
         self._coordinates = value
 
-        for rep_id in self.representations_id:
+        for rep_id in self.representations.values():
             self.update_representation(rep_id, {'coordinates': value.astype('float32')})
 
 

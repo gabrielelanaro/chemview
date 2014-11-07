@@ -37,27 +37,6 @@ function($, WidgetManager) {
 
             container.append(canvas);
             this.setElement(container);
-
-
-            // var coords = this.model.get('_coordinates');
-            // var topology = this.model.get('topology');
- 
-            // var rep = new PointLineRepresentation(this.ndarrayToTypedArray(coords),
-            //                                       topology.bonds, 
-            //                                       this.model.get('color_scheme'));
-            // mv.addRepresentation(rep);
-
-            // var surface = this.model.get('surface');
-
-            // var surf = new SurfaceRepresentation(this.ndarrayToTypedArray(surface.vertices),
-            //                                      this.ndarrayToTypedArray(surface.faces));
-            // mv.addRepresentation(surf);
-
-            // this.update();
-            
-            // this.pointRepresentation = rep;
-
-            // mv.zoomInto(this.ndarrayToTypedArray(coords));
             mv.renderer.setSize(WIDTH, HEIGHT);
 
             this.setupFullScreen(canvas, container);
@@ -155,7 +134,10 @@ function($, WidgetManager) {
             } else if (type == 'spheres') {
                 var rep = new SphereRepresentation(options.coordinates, options.radii, options.resolution);
                 this.mv.addRepresentation(rep, repId);
-            } 
+            } else if (type == 'box') {
+                var rep = new BoxRepresentation(options.start, options.end, options.color);
+                this.mv.addRepresentation(rep, repId);
+            }
             else {
                 console.log("Undefined representation " + type);
             }
