@@ -403,7 +403,7 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
     this.removeFromScene = function(scene) {
         scene.remove(this.mesh);
     };
-}
+};
 
 /** Draw a single box in the viewer (useful for bounding boxes and alike) */
 var BoxRepresentation = function(start, end, color) {
@@ -460,14 +460,160 @@ var BoxRepresentation = function(start, end, color) {
     };
 
     this.update = function (options) {};
-}
+};
 
 
-// var SmoothLineRepresentation = function (coordinates, colors, resolution) {
-//     // pass
+var SmoothLineRepresentation = function (coordinates, colors, resolution) {
+    var resolution = (resolution != undefined) ? resolution : 16;
+    this.resolution = resolution;
+    // We could use our friendly splite provided by threejs
+    var points = []
+    for (var i = 0; i < coordinates.length/3; i++) {
+        points.push(new THREE.Vector3(coordinates[3 * i + 0],
+                                      coordinates[3 * i + 1],
+                                      coordinates[3 * i + 2]));
+    }
+    var path = new THREE.SplineCurve3(points);
+
+    var geometry = new THREE.Geometry();
+    geometry.vertices = path.getPoints(resolution * points.length);
+
+    var material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+    this.geometry = geometry;
+    this.material = material;
+
+    this.line = new THREE.Line(geometry, material);
+
+    this.addToScene = function(scene) {
+        scene.add(this.line);
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.line);
+    };
+
+    this.update = function (options) {
+
+        if (options.coordinates != undefined) {
+            var coordinates = options.coordinates;
+
+            // Regenerate the spline geometry
+            var points = [];
+            for (var i = 0; i < coordinates.length/3; i++) {
+                points.push(new THREE.Vector3(coordinates[3 * i + 0],
+                                              coordinates[3 * i + 1],
+                                              coordinates[3 * i + 2]));
+            }
+            var path = new THREE.SplineCurve3(points);
+            this.geometry.vertices = path.getPoints(resolution * points.length);
+            this.geometry.verticesNeedUpdate = true;
+        }
+    };
+};
+
+var SmoothTubeRepresentation = function (coordinates, radius, colors, resolution) {
+    var resolution = (resolution != undefined) ? resolution : 4;
+    this.resolution = resolution;
+    var CIRCLE_RESOLUTION = 8;
+
+    // We could use our friendly splite provided by threejs
+    var points = []
+    for (var i = 0; i < coordinates.length/3; i++) {
+        points.push(new THREE.Vector3(coordinates[3 * i + 0],
+                                      coordinates[3 * i + 1],
+                                      coordinates[3 * i + 2]));
+    }
+    var path = new THREE.SplineCurve3(points);
+
+    var geometry = new THREE.TubeGeometry(path, resolution * points.length, radius, CIRCLE_RESOLUTION, false);
+    var material = new THREE.MeshPhongMaterial( {
+        // light
+        specular: '#a9fcff',
+        // intermediate
+        color: '#00abb1',
+        // dark
+        emissive: '#006063',
+        shininess: 100  } );
+
+    this.geometry = geometry;
+    this.material = material;
+
+    this.mesh = new THREE.Mesh(geometry, material);
+
+    this.addToScene = function(scene) {
+        scene.add(this.mesh);
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.mesh);
+    };
+
+    this.update = function (options) {
+
+        if (options.coordinates != undefined) {
+            var coordinates = options.coordinates;
+
+            // Regenerate the spline geometry
+            var points = []
+            for (var i = 0; i < coordinates.length/3; i++) {
+                points.push(new THREE.Vector3(coordinates[3 * i + 0],
+                                              coordinates[3 * i + 1],
+                                              coordinates[3 * i + 2]));
+            }
+            var path = new THREE.SplineCurve3(points);
+
+            var geometry = new THREE.TubeGeometry(path, resolution * points.length, radius, CIRCLE_RESOLUTION, false);
+            this.geometry.vertices = geometry.vertices;
+            this.geometry.verticesNeedUpdate = true;
+        }
+    };
+};
+
+
+// Draw a single cylinder
+var CylinderRepresentation = function (start, end, radius, color) { 
+
+    var startVec = new THREE.Vector3(start[0], start[1], start[2]);
+    var endVec = new THREE.Vector3(end[0], end[1], end[2]);
+    var length = startVec.distanceTo(endVec);
+
+    var geometry = new THREE.CylinderGeometry(radius, radius, length, 16);
+    var material = new THREE.MeshBasicMaterial({color: 0xffff00});
+
+    var cylinder = new THREE.Mesh(geometry, material);
+    cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI * 0.5);
+    cylinder.position.add(new THREE.Vector3(0, 0, length*0.5));
+    cylinder.updateMatrix();
+
+    var axis = new THREE.Vector3();
+    axis.subVectors(endVec, startVec);
+    axis.normalize();
+    cylinder.lookAt(axis);
+    cylinder.position.add(startVec);
+
+    this.cylinder = cylinder;
+
+    this.addToScene = function(scene) {
+        scene.add(this.cylinder);
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.cylinder);
+    };
+
+    this.update = function (options) {
+
+        if (options.start != undefined) {
+
+        }
+    }
+
+};
 
 //     var vertices = this.subdivide(coordinates, resolution);
 
+// Courtesy of iview
 //     this.subdivide = function () {
 //         /** Adapted from iview */
 //         if (div == 1) return points;

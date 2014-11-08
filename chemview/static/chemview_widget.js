@@ -137,6 +137,15 @@ function($, WidgetManager) {
             } else if (type == 'box') {
                 var rep = new BoxRepresentation(options.start, options.end, options.color);
                 this.mv.addRepresentation(rep, repId);
+            } else if (type == 'smoothline') {
+                var rep = new SmoothLineRepresentation(options.coordinates, options.colors, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+            } else if (type == 'smoothtube') {
+                var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.colors, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+            } else if (type == 'cylinder') {
+                var rep = new CylinderRepresentation(options.start, options.end, options.radius);
+                this.mv.addRepresentation(rep, repId);
             }
             else {
                 console.log("Undefined representation " + type);
