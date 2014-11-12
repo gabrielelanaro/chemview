@@ -579,18 +579,20 @@ var CylinderRepresentation = function (start, end, radius, color) {
     var length = startVec.distanceTo(endVec);
 
     var geometry = new THREE.CylinderGeometry(radius, radius, length, 16);
-    var material = new THREE.MeshBasicMaterial({color: 0xffff00});
+    var material = new THREE.MeshPhongMaterial({color: 0xffff00, shininess: 100});
 
+    // Rotate the geometry vertices to align the cylinder with the z-axis
+    var orientation = new THREE.Matrix4();
+    orientation.makeRotationFromEuler(new THREE.Euler(-Math.PI * 0.5,0,0, 'XYZ'));//rotate on X 90 degrees
+    orientation.setPosition(new THREE.Vector3(0,0,0.5*length));//move half way on Z, since default pivot is at centre
+    geometry.applyMatrix(orientation);//apply transformation for geometry
+
+    // Position the cylinder normally
     var cylinder = new THREE.Mesh(geometry, material);
-    cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI * 0.5);
-    cylinder.position.add(new THREE.Vector3(0, 0, length*0.5));
-    cylinder.updateMatrix();
+    cylinder.position.copy(startVec);
+    cylinder.lookAt(endVec);
 
-    var axis = new THREE.Vector3();
-    axis.subVectors(endVec, startVec);
-    axis.normalize();
-    cylinder.lookAt(axis);
-    cylinder.position.add(startVec);
+    this.cylinder = cylinder;
 
     this.cylinder = cylinder;
 
@@ -610,32 +612,3 @@ var CylinderRepresentation = function (start, end, radius, color) {
     }
 
 };
-
-//     var vertices = this.subdivide(coordinates, resolution);
-
-// Courtesy of iview
-//     this.subdivide = function () {
-//         /** Adapted from iview */
-//         if (div == 1) return points;
-//         var ret = [], divInv = 1.0 / div, len = points.length;
-//         for (var i = -1; i <= len - 3; ++i) {
-//             var p0 = points[i == -1 ? 0 : i];
-//             var p1 = points[i + 1];
-//             var p2 = points[i + 2];
-//             var p3 = points[i == len - 3 ? len - 1 : i + 3];
-//             var v0 = p2.clone().sub(p0).multiplyScalar(0.5);
-//             var v1 = p3.clone().sub(p1).multiplyScalar(0.5);
-//             var v2 = p2.clone().sub(p1);
-//             for (var j = 0; j < div; ++j) {
-//                 var t = divInv * j;
-//                 ret.push(p1.clone().add(v0.clone().multiplyScalar(t)).add((v2.clone().multiplyScalar(3).sub(v0.clone().multiplyScalar(2)).sub(v1)).multiplyScalar(t * t)).add((v2.clone().multiplyScalar(-2).add(v0).add(v1)).multiplyScalar(t * t * t)));
-// //              ret.push(new THREE.Vector3(
-// //                  p1.x + t * v0.x + t * t * (-3 * p1.x + 3 * p2.x - 2 * v0.x - v1.x) + t * t * t * (2 * p1.x - 2 * p2.x + v0.x + v1.x),
-// //                  p1.y + t * v0.y + t * t * (-3 * p1.y + 3 * p2.y - 2 * v0.y - v1.y) + t * t * t * (2 * p1.y - 2 * p2.y + v0.y + v1.y),
-// //                  p1.z + t * v0.z + t * t * (-3 * p1.z + 3 * p2.z - 2 * v0.z - v1.z) + t * t * t * (2 * p1.z - 2 * p2.z + v0.z + v1.z)));
-//             }
-//         }
-//         ret.push(points[len - 1]);
-//         return ret;
-//     }
-// }
