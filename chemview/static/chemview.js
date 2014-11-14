@@ -43,7 +43,7 @@ var MolecularViewer = function ($el) {
 	this.renderer.setClearColor(background, 1);
 
 	this.scene = new THREE.Scene();
-	this.scene.fog = new THREE.Fog(background, 10, 200);
+	this.scene.fog = new THREE.FogExp2(background);
 
 	var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
 	directionalLight.position.set(0.2, 0.2, -1).normalize();
@@ -151,15 +151,13 @@ MolecularViewer.prototype = {
 };
 
 /** 
- * Represents a set of coordinates as points.
+ * Flat points in space
  * 
- * @param coordinates: a (flattened) Float32Array of coordinates in 3D space
- * @param bonds: a (flattened) Int32Array of bonds, represented as 
- *                indices that connects two coordinates
- * @param colors: a list of colors (one for each point) expressed as hexadecimal numbers
- * @param sizes: a list of sizes for the points
+ * :param Float32Aarray coordinates: a (flattened) array of coordinates
+ * :param list colors: a list of colors (one for each point) expressed as hexadecimal numbers
+ * :param list sizes: a list of sizes for the points
  */
-var PointLineRepresentation = function (coordinates, bonds, colors, sizes) {
+var PointsRepresentation = function (coordinates, colors, sizes) {
 
     var DEFAULT_SIZE = 0.15,
         DEFAULT_COLOR = 0xffffff;
@@ -179,15 +177,11 @@ var PointLineRepresentation = function (coordinates, bonds, colors, sizes) {
         }
     }
 
-    if (bonds == undefined) {
-        var bonds = [];
-    }
-
-	// That is the points part
-	var geo = new THREE.Geometry();
+    // That is the points part
+    var geo = new THREE.Geometry();
     this.geometry = geo;
 
-	var attributes = {
+    var attributes = {
 
         color: { type: 'c', value: []},
         pointSize: { type: 'f', value: sizes},
@@ -195,34 +189,34 @@ var PointLineRepresentation = function (coordinates, bonds, colors, sizes) {
     };
 
 
-	for (var p = 0; p < coordinates.length/3; p++) {
-		var particle = new THREE.Vector3(coordinates[3 * p + 0],
-										 coordinates[3 * p + 1],
-										 coordinates[3 * p + 2]);
-		geo.vertices.push(particle);
-		attributes.color.value.push(new THREE.Color(colors[p]));
-	}
+    for (var p = 0; p < coordinates.length/3; p++) {
+        var particle = new THREE.Vector3(coordinates[3 * p + 0],
+                                         coordinates[3 * p + 1],
+                                         coordinates[3 * p + 2]);
+        geo.vertices.push(particle);
+        attributes.color.value.push(new THREE.Color(colors[p]));
+    }
 
-	
-	var vertex_shader = "\
-	    attribute vec3 color;\
+    
+    var vertex_shader = "\
+        attribute vec3 color;\
         attribute float pointSize;\
-	    varying vec3 vColor;\
-    	\
-    	void main() {\
-       		vColor = color;\
-        	vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-        	gl_PointSize = pointSize * ( 150.0 / length( mvPosition.xyz ));\
-        	gl_Position = projectionMatrix * mvPosition;\
-    	}\
+        varying vec3 vColor;\
+        \
+        void main() {\
+            vColor = color;\
+            vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
+            gl_PointSize = pointSize * ( 150.0 / length( mvPosition.xyz ));\
+            gl_Position = projectionMatrix * mvPosition;\
+        }\
     ";
 
     var fragment_shader = "\
-    	varying vec3 vColor;\
-    	\
-    	void main() {\
-    	if (length(gl_PointCoord*2.0 - 1.0) > 1.0)\
-    		discard;\
+        varying vec3 vColor;\
+        \
+        void main() {\
+        if (length(gl_PointCoord*2.0 - 1.0) > 1.0)\
+            discard;\
         gl_FragColor = vec4( vColor,  1.0);\
     }\
     ";
@@ -237,69 +231,93 @@ var PointLineRepresentation = function (coordinates, bonds, colors, sizes) {
     });
     this.material = shaderMaterial;
 
-	this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
+    this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
 
+    this.update = function (options) {
+        var coordinates = data.coordinates;
 
-	// That is the lines part
-   	var geo = new THREE.Geometry();
-   	for (var b = 0; b < bonds.length; b++) {
-   		var start = this.geometry.vertices[bonds[b][0]];
-   		var end = this.geometry.vertices[bonds[b][1]];
+        if (data.coordinates != undefined) {
+            // There has been no update in coordinates
+            for (var p=0; p < coordinates.length/3; p++) {
+                this.geometry.vertices[p].x = coordinates[3 * p + 0];
+                this.geometry.vertices[p].y = coordinates[3 * p + 1];
+                this.geometry.vertices[p].z = coordinates[3 * p + 2];
+            }
 
-   		geo.vertices.push(start);
-   		geo.vertices.push(end);
-   	}
-   	    
-   	var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
-    });
+            this.particleSystem.geometry.verticesNeedUpdate = true;
+        }
 
-   	this.lines = new THREE.Line(geo, material, THREE.LinePieces);
-   	this.lines.geometry.dynamic = true;
+        if (data.sizes != undefined) {
+            this.particleSystem.material.attributes.pointSize.value = data.sizes;
+            this.particleSystem.material.attributes.pointSize.needsUpdate = true;  
+        }
+
+    };
+
+    this.addToScene = function(scene) {
+        scene.add(this.particleSystem);
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(this.particleSystem);
+    };
 
 };
 
+/** Flat lines in space given a start and end coordinate of each line.
+ *
+ *  :param Float32Array startCoords: A flattened array of the coordinates where the lines start.
+ *  :param Float32Array endCoords: The end coordinates
+ *  :param list startColors: The colors of the start coordinate
+ *  :param list endColors: The end color of the end coordinate
+ */
+var LineRepresentation = function (startCoords, endCoords, startColors, endColors) {
+    var geo = new THREE.Geometry();
+    for (var i = 0; i < startCoords.length/3; i++) {
+        geo.vertices.push(new THREE.Vector3(startCoords[3*i + 0],
+                                            startCoords[3*i + 1],
+                                            startCoords[3*i + 2]));
+        geo.colors.push(new THREE.Color(startColors[i]));
 
-PointLineRepresentation.prototype = {
+        geo.vertices.push(new THREE.Vector3(endCoords[3*i + 0],
+                                            endCoords[3*i + 1],
+                                            endCoords[3*i + 2]));
+        geo.colors.push(new THREE.Color(endColors[i]));
+    }
+    
+    var material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            vertexColors: THREE.VertexColors,
+    });
 
-    /** Update the representation with other data
-     * Updates supported:
-     * - coordinates
-     * - sizes
-     */
-    update: function (data) {
+    this.lines = new THREE.Line(geo, material, THREE.LinePieces);
+    this.lines.geometry.dynamic = true;
 
-    	var coordinates = data.coordinates;
+    this.update = function (options) {
+        if ( options.startCoords != undefined && options.endCoords != undefined ) {
+            var geo = this.lines.geometry,
+                startCoords = options.startCoords,
+                endCoords = options.endCoords;
 
-    	if (data.coordinates != undefined) {
-    		// There has been no update in coordinates
-	    	for (var p=0; p < coordinates.length/3; p++) {
-	    		this.geometry.vertices[p].x = coordinates[3 * p + 0];
-	    		this.geometry.vertices[p].y = coordinates[3 * p + 1];
-	    		this.geometry.vertices[p].z = coordinates[3 * p + 2];
-	    	}
+            for (var i = 0; i < startCoords.length/3; i++) {
+                geo.vertices[2*i].set(startCoords[3*i + 0],
+                                      startCoords[3*i + 1],
+                                      startCoords[3*i + 2]);
 
-	    	this.particleSystem.geometry.verticesNeedUpdate = true;
-	    	this.lines.geometry.verticesNeedUpdate = true;
+                geo.vertices[2*i + 1].set(endCoords[3*i + 0],
+                                          endCoords[3*i + 1],
+                                          endCoords[3*i + 2]);
+            }
+        }
+    };
 
-	    }
+    this.addToScene = function(scene) {
+        scene.add(this.lines);
+    };
 
-	    if (data.sizes != undefined) {
-            this.particleSystem.material.attributes.pointSize.value = data.sizes;
-            this.particleSystem.material.attributes.pointSize.needsUpdate = true;  
-	    }
-
-    },
-
-   	addToScene: function(scene) {
-   		scene.add(this.particleSystem);
-   		scene.add(this.lines);
-   	},
-
-    removeFromScene: function(scene) {
-        scene.remove(this.particleSystem);
+    this.removeFromScene = function(scene) {
         scene.remove(this.lines);
-    },
+    };    
 };
 
 /**
@@ -353,8 +371,9 @@ var SurfaceRepresentation = function (verts, faces, style) {
 
 };
 
-
-var SphereRepresentation = function (coordinates, radii, resolution) {
+/** Spheres 
+ */
+var SphereRepresentation = function (coordinates, radii, colors, resolution) {
 
     if (resolution == undefined)
         resolution = 16;
@@ -373,7 +392,7 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
                                          coordinates[3 * i + 1],
                                          coordinates[3 * i + 2]));
             geometry.vertices.push(vertex);
-            //geometry.normals.push(sphereTemplate.vertices[j]);
+            geometry.colors.push(new THREE.Color(colors[i]));
         }
 
         for (var j=0; j < sphereTemplate.faces.length; j++) {
@@ -381,15 +400,14 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
             face.a += sphereTemplate.vertices.length * i;
             face.b += sphereTemplate.vertices.length * i;
             face.c += sphereTemplate.vertices.length * i;
-
+            face.color.setHex(colors[i]);
             geometry.faces.push(face);
         }
             
     }
-    geometry.computeFaceNormals();
-    geometry.computeVertexNormals();
 
-    var material = new THREE.MeshBasicMaterial({wireframe: true, color: 0x00ffff});
+    var material = new THREE.MeshPhongMaterial({color: 0xffffff, 
+                                                vertexColors: THREE.VertexColors});
     this.mesh = new THREE.Mesh(geometry, material);
 
     this.addToScene = function (scene) {
@@ -397,6 +415,7 @@ var SphereRepresentation = function (coordinates, radii, resolution) {
     }
 
     this.update = function(options) {
+        console.log("Spheres update not implemented yet");
         // nothing
     };
 
@@ -463,8 +482,9 @@ var BoxRepresentation = function(start, end, color) {
 };
 
 
-var SmoothLineRepresentation = function (coordinates, colors, resolution) {
+var SmoothLineRepresentation = function (coordinates, color, resolution) {
     var resolution = (resolution != undefined) ? resolution : 16;
+    var color = (color != undefined) ? color : 0xffffff;
     this.resolution = resolution;
     // We could use our friendly splite provided by threejs
     var points = []
@@ -478,7 +498,8 @@ var SmoothLineRepresentation = function (coordinates, colors, resolution) {
     var geometry = new THREE.Geometry();
     geometry.vertices = path.getPoints(resolution * points.length);
 
-    var material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+    var material = new THREE.LineBasicMaterial( { color: color, 
+                                                  fog: true } );
 
     this.geometry = geometry;
     this.material = material;
@@ -512,8 +533,9 @@ var SmoothLineRepresentation = function (coordinates, colors, resolution) {
     };
 };
 
-var SmoothTubeRepresentation = function (coordinates, radius, colors, resolution) {
+var SmoothTubeRepresentation = function (coordinates, radius, color, resolution) {
     var resolution = (resolution != undefined) ? resolution : 4;
+    var color = (color != undefined) ? color : 0xffffff;
     this.resolution = resolution;
     var CIRCLE_RESOLUTION = 8;
 
@@ -527,14 +549,7 @@ var SmoothTubeRepresentation = function (coordinates, radius, colors, resolution
     var path = new THREE.SplineCurve3(points);
 
     var geometry = new THREE.TubeGeometry(path, resolution * points.length, radius, CIRCLE_RESOLUTION, false);
-    var material = new THREE.MeshPhongMaterial( {
-        // light
-        specular: '#a9fcff',
-        // intermediate
-        color: '#00abb1',
-        // dark
-        emissive: '#006063',
-        shininess: 100  } );
+    var material = new THREE.MeshPhongMaterial( { color: color , fog: true} );
 
     this.geometry = geometry;
     this.material = material;

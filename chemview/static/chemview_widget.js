@@ -122,26 +122,31 @@ function($, WidgetManager) {
                             });
 
 
-            if (type == 'point') {
-                var rep = new PointLineRepresentation(options.coordinates, options.bonds, options.colors, options.sizes);
+            if (type == 'points') {
+                var rep = new PointsRepresentation(options.coordinates, options.colors, options.sizes);
                 this.mv.zoomInto(options.coordinates);
-                this.mv.controls.handleResize();
                 this.mv.addRepresentation(rep, repId);
+            } else if (type == 'lines') {
+                var rep = new LineRepresentation(options.startCoords, options.endCoords, options.startColors, options.endColors);
+                this.mv.zoomInto(options.startCoords);
+                this.mv.addRepresentation(rep, repId);
+
             } else if (type == 'surface') {
                 var rep = new SurfaceRepresentation(options.verts, options.faces, options.style);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.controls.handleResize();
             } else if (type == 'spheres') {
-                var rep = new SphereRepresentation(options.coordinates, options.radii, options.resolution);
+                var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'box') {
                 var rep = new BoxRepresentation(options.start, options.end, options.color);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'smoothline') {
-                var rep = new SmoothLineRepresentation(options.coordinates, options.colors, options.resolution);
+                var rep = new SmoothLineRepresentation(options.coordinates, options.color, options.resolution);
+                this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'smoothtube') {
-                var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.colors, options.resolution);
+                var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
+                this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'cylinder') {
                 var rep = new CylinderRepresentation(options.start, options.end, options.radius);
@@ -151,7 +156,7 @@ function($, WidgetManager) {
                 console.log("Undefined representation " + type);
             }
 
-            
+            this.mv.controls.handleResize();
             this.mv.render();      
         },
 
