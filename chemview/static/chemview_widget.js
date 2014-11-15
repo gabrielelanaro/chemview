@@ -7,7 +7,7 @@ require([
     "contextmenu",
     "base64-arraybuffer", // provides decode
     'jqueryui',
-    'TrackballControls',
+    'OrbitControls',
     'marchingcubes',
     ],
 function($, WidgetManager) {
@@ -205,7 +205,7 @@ function($, WidgetManager) {
                         viewer.trigger("exportImg");
                     }
                 },];
-            context.attach('canvas',menu)
+            context.attach('canvas', menu);
 
         },
         

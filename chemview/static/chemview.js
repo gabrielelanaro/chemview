@@ -53,16 +53,14 @@ var MolecularViewer = function ($el) {
 	this.scene.add(ambientLight);
 	//this.scene.add(this.camera);
 
-	this.controls = new THREE.TrackballControls(this.camera, this.container);
-	this.controls.rotateSpeed = 1.0;
+	//this.controls = new THREE.TrackballControls(this.camera, this.container);
+    this.controls = new THREE.OrbitControls(this.camera, this.container.get(0));
+    this.controls.zoomInto = function () {};
+    this.controls.handleResize = function () {};
+
+	this.controls.rotateSpeed = 0.4;
 	this.controls.zoomSpeed = 1.2;
 	this.controls.panSpeed = 0.8;
-
-	this.controls.noZoom = false;
-	this.controls.noPan = false;
-	this.controls.norRotate = false;
-
-	this.controls.staticMoving = false;
 	this.controls.dynamicDampingFactor = 0.2;
 
 	this.controls.keys = [ 65, 83, 68 ];
@@ -89,8 +87,8 @@ MolecularViewer.prototype = {
     },
 
     render: function () {
-    	if (this.controls.screen.width == 0 || this.controls.screen.height == 0)
-    		this.controls.handleResize();
+    	//if (this.controls.screen.width == 0 || this.controls.screen.height == 0)
+    	//	this.controls.handleResize();
 
     	this.renderer.render(this.scene, this.camera);
     },
@@ -667,7 +665,7 @@ var CylinderRepresentation = function (startCoords, endCoords, radii, colors, re
         if (options.startCoords != undefined || options.endCoords != undefined) {
             var startCoords = options.startCoords;
             var endCoords = options.endCoords;
-            
+
             for (var i=0; i < startCoords.length/3; i++) {
                 var startVec = new THREE.Vector3(startCoords[3*i + 0], 
                                                  startCoords[3*i + 1], 
