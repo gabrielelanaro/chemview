@@ -35,6 +35,8 @@ function($, WidgetManager) {
                     },
                 });
 
+            this.setupContextMenu(this);
+
             container.append(canvas);
             this.setElement(container);
             mv.renderer.setSize(WIDTH, HEIGHT);
@@ -50,9 +52,6 @@ function($, WidgetManager) {
         },
 
         update : function () {
-
-            console.log('MolecularView.update');
-
             return MolecularView.__super__.update.apply(this);
         },
 
@@ -94,13 +93,9 @@ function($, WidgetManager) {
             }
         },
 
-        /** We receive custom messages from our conterpart */
+        /* We receive custom messages from our python conterpart with DOMWidget.send */
         on_msg: function(msg) {
-            console.log('receivedMsg');
-            console.log(msg);
-
             if (msg.type == 'callMethod') {
-                console.log(msg.args);
                 this[msg.methodName].call(this, msg.args);
             }
 
@@ -137,6 +132,7 @@ function($, WidgetManager) {
             } else if (type == 'spheres') {
                 var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.coordinates);
             } else if (type == 'box') {
                 var rep = new BoxRepresentation(options.start, options.end, options.color);
                 this.mv.addRepresentation(rep, repId);
@@ -148,9 +144,10 @@ function($, WidgetManager) {
                 var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
                 this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
-            } else if (type == 'cylinder') {
-                var rep = new CylinderRepresentation(options.start, options.end, options.radius);
+            } else if (type == 'cylinders') {
+                var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.startCoords);
             }
             else {
                 console.log("Undefined representation " + type);
@@ -197,10 +194,28 @@ function($, WidgetManager) {
                 console.log('Type ' + array['type'] + ' is not supported');
             }
 
-        }
+        },
+
+        setupContextMenu : function(viewer) {
+            context.init({preventDoubleContext: true});
+            this.on('exportImg', this._handle_export.bind(this));
+            var menu = [{header: 'Inline Display'},
+                    {text: 'PNG',
+                    action: function () {
+                        viewer.trigger("exportImg");
+                    }
+                },];
+            context.attach('canvas',menu)
+
+        },
+        
+        _handle_export: function(){
+            // Handles when the displayimage menu is clicked
+            var dataURL = this.mv.renderer.domElement.toDataURL('image/png');
+            this.send({event: 'displayImg', dataUrl: dataURL});
+        },
 
     });
-
 
     WidgetManager.register_widget_view('MolecularView', MolecularView);
 });

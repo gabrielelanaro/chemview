@@ -148,6 +148,10 @@ MolecularViewer.prototype = {
         this.camera.updateProjectionMatrix();
         this.render();
 	},
+
+    exportPng: function() {
+        this.renderer.domElement.toDataUrl();
+    },
 };
 
 /** 
@@ -234,9 +238,9 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
     this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
 
     this.update = function (options) {
-        var coordinates = data.coordinates;
+        var coordinates = options.coordinates;
 
-        if (data.coordinates != undefined) {
+        if (options.coordinates != undefined) {
             // There has been no update in coordinates
             for (var p=0; p < coordinates.length/3; p++) {
                 this.geometry.vertices[p].x = coordinates[3 * p + 0];
@@ -247,8 +251,8 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
             this.particleSystem.geometry.verticesNeedUpdate = true;
         }
 
-        if (data.sizes != undefined) {
-            this.particleSystem.material.attributes.pointSize.value = data.sizes;
+        if (options.sizes != undefined) {
+            this.particleSystem.material.attributes.pointSize.value = options.sizes;
             this.particleSystem.material.attributes.pointSize.needsUpdate = true;  
         }
 
@@ -294,7 +298,7 @@ var LineRepresentation = function (startCoords, endCoords, startColors, endColor
     this.lines.geometry.dynamic = true;
 
     this.update = function (options) {
-        if ( options.startCoords != undefined && options.endCoords != undefined ) {
+        if ( options.startCoords != undefined || options.endCoords != undefined ) {
             var geo = this.lines.geometry,
                 startCoords = options.startCoords,
                 endCoords = options.endCoords;
@@ -308,6 +312,7 @@ var LineRepresentation = function (startCoords, endCoords, startColors, endColor
                                           endCoords[3*i + 1],
                                           endCoords[3*i + 2]);
             }
+            geo.verticesNeedUpdate = true;
         }
     };
 
@@ -415,8 +420,25 @@ var SphereRepresentation = function (coordinates, radii, colors, resolution) {
     }
 
     this.update = function(options) {
-        console.log("Spheres update not implemented yet");
-        // nothing
+        if (options.coordinates != undefined ) {
+            var coordinates = options.coordinates;
+
+            for (var i=0; i < coordinates.length/3; i ++) {
+                for (var j=0; j < sphereTemplate.vertices.length; j++){
+                    var vertex = new THREE.Vector3();
+
+                    vertex.copy(sphereTemplate.vertices[j]);
+                    vertex.multiplyScalar(radii[i]);
+                    vertex.add(new THREE.Vector3(coordinates[3 * i + 0],
+                                                 coordinates[3 * i + 1],
+                                                 coordinates[3 * i + 2]));
+
+                    var offset = i * sphereTemplate.vertices.length;
+                    geometry.vertices[offset + j].copy(vertex);
+                }
+            }
+            geometry.verticesNeedUpdate = true;
+        }
     };
 
     this.removeFromScene = function(scene) {
@@ -585,44 +607,80 @@ var SmoothTubeRepresentation = function (coordinates, radius, color, resolution)
     };
 };
 
+/**
+ * Draw a series of solid cylinders given their start/end coordinates, radii and colors.
+ *
+ * This is to be used sparingly (max ~100 cylinders because it's inefficient). If you need to render bonds, use 
+ * the LineRepresentation class, much much faster.
+ *  
+ * :param Float32Array startCoords:
+ * :param Float32Array endCoords:
+ * :param list radii:
+ * :param list colors:
+ */
+var CylinderRepresentation = function (startCoords, endCoords, radii, colors, resolution) {
+    var resolution = (resolution != undefined) ? resolution : 16;
+    var cylinders = [];
 
-// Draw a single cylinder
-var CylinderRepresentation = function (start, end, radius, color) { 
+    for (var i=0; i < startCoords.length/3; i++) {
+        var startVec = new THREE.Vector3(startCoords[3*i + 0], 
+                                         startCoords[3*i + 1], 
+                                         startCoords[3*i + 2]);
 
-    var startVec = new THREE.Vector3(start[0], start[1], start[2]);
-    var endVec = new THREE.Vector3(end[0], end[1], end[2]);
-    var length = startVec.distanceTo(endVec);
+        var endVec = new THREE.Vector3(endCoords[3*i + 0], 
+                                       endCoords[3*i + 1], 
+                                       endCoords[3*i + 2]);
 
-    var geometry = new THREE.CylinderGeometry(radius, radius, length, 16);
-    var material = new THREE.MeshPhongMaterial({color: 0xffff00, shininess: 100});
+        var length = startVec.distanceTo(endVec);
 
-    // Rotate the geometry vertices to align the cylinder with the z-axis
-    var orientation = new THREE.Matrix4();
-    orientation.makeRotationFromEuler(new THREE.Euler(-Math.PI * 0.5,0,0, 'XYZ'));//rotate on X 90 degrees
-    orientation.setPosition(new THREE.Vector3(0,0,0.5*length));//move half way on Z, since default pivot is at centre
-    geometry.applyMatrix(orientation);//apply transformation for geometry
+        var geometry = new THREE.CylinderGeometry(radii[i], radii[i], length, resolution);
+        var material = new THREE.MeshPhongMaterial({color: colors[i]});
 
-    // Position the cylinder normally
-    var cylinder = new THREE.Mesh(geometry, material);
-    cylinder.position.copy(startVec);
-    cylinder.lookAt(endVec);
+        // Rotate the geometry vertices to align the cylinder with the z-axis
+        var orientation = new THREE.Matrix4();
+        orientation.makeRotationFromEuler(new THREE.Euler(-Math.PI * 0.5,0,0, 'XYZ'));//rotate on X 90 degrees
+        orientation.setPosition(new THREE.Vector3(0,0,0.5*length));//move half way on Z, since default pivot is at centre
+        geometry.applyMatrix(orientation);//apply transformation for geometry
 
-    this.cylinder = cylinder;
+        // Position the cylinder normally
+        var cylinder = new THREE.Mesh(geometry, material);
+        cylinder.position.copy(startVec);
+        cylinder.lookAt(endVec);
 
-    this.cylinder = cylinder;
+        cylinders.push(cylinder);
+    }
 
     this.addToScene = function(scene) {
-        scene.add(this.cylinder);
+        for (var i=0; i < cylinders.length; i++) {
+            scene.add(cylinders[i]);
+        }
     };
 
     this.removeFromScene = function(scene) {
-        scene.remove(this.cylinder);
+        for (var i=0; i < cylinders.length; i++) {
+            scene.remove(cylinders[i]);
+        }
     };
 
     this.update = function (options) {
 
-        if (options.start != undefined) {
+        if (options.startCoords != undefined || options.endCoords != undefined) {
+            var startCoords = options.startCoords;
+            var endCoords = options.endCoords;
+            
+            for (var i=0; i < startCoords.length/3; i++) {
+                var startVec = new THREE.Vector3(startCoords[3*i + 0], 
+                                                 startCoords[3*i + 1], 
+                                                 startCoords[3*i + 2]);
 
+                var endVec = new THREE.Vector3(endCoords[3*i + 0], 
+                                               endCoords[3*i + 1], 
+                                               endCoords[3*i + 2]);
+                var cylinder = cylinders[i];
+                cylinder.position.copy(startVec);
+                cylinder.lookAt(endVec);
+                cylinder.geometry.verticesNeedUpdate = true;
+            }
         }
     }
 
