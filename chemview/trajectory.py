@@ -7,7 +7,8 @@ from IPython.utils.traitlets import (Unicode, Bool, Bytes, CInt, Any,
                                      Dict, Enum, CFloat, List)
 
 class TrajectoryControls(DOMWidget):
-    _view_name = "TrajectoryControls"
+    _view_name = Unicode('TrajectoryControls', sync=True)
+    frame = CInt(sync=True)   
     
     def __init__(self):
         super(TrajectoryControls, self).__init__()
@@ -15,6 +16,7 @@ class TrajectoryControls(DOMWidget):
 class TrajectoryViewer(RepresentationViewer):
 
     frame = CInt()
+
 
     def __init__(self, traj, primary_structure=None,
                              secondary_structure="cylinder and strand"):

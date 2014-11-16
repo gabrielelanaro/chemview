@@ -19,7 +19,6 @@ require.config({
         'contextmenu': '/nbextensions/context',
         'ArcballControls' : '/nbextensions/ArcballControls',
         'chemview': '/nbextensions/chemview',
-        'marchingcubes': '/nbextensions/MarchingCubes',
     },
     shim: {
         three: {
@@ -27,7 +26,7 @@ require.config({
         },
 
         chemview: {
-            deps: ['three', 'ArcballControls', 'marchingcubes'],
+            deps: ['three', 'ArcballControls'],
             exports: 'MolecularViewer'
         },
 
@@ -45,10 +44,6 @@ require.config({
             exports: "$"
         },
 
-        marchingcubes: {
-            deps: ['three'],
-            exports: "THREE.MarchingCubes",
-        },
     },
 });
 ''',
@@ -60,7 +55,7 @@ def enable_notebook():
 
     This function should be called before using TrajectoryWidget.
     """
-    libs = ['objexporter.js', 'MarchingCubes.js',
+    libs = ['objexporter.js', 
             'ArcballControls.js', 'filesaver.js',
             'base64-arraybuffer.js', 'context.js', 
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
@@ -69,7 +64,7 @@ def enable_notebook():
     install_nbextension(fns, verbose=1, overwrite=True)
     display(_REQUIRE_CONFIG)
 
-    widgets = ['chemview_widget.js']
+    widgets = ['chemview_widget.js', 'trajectory_controls_widget.js']
     for fn in widgets:
         fn = resource_filename('chemview', os.path.join('static', fn))
         display(Javascript(filename=fn))

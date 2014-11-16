@@ -8,7 +8,6 @@ require([
     "base64-arraybuffer", // provides decode
     'jqueryui',
     'ArcballControls',
-    'marchingcubes',
     ],
 function($, WidgetManager) {
     var HEIGHT = 600,
