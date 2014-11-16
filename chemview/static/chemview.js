@@ -54,7 +54,7 @@ var MolecularViewer = function ($el) {
 	//this.scene.add(this.camera);
 
 	//this.controls = new THREE.TrackballControls(this.camera, this.container);
-    this.controls = new THREE.OrbitControls(this.camera, this.container.get(0));
+    this.controls = new THREE.ArcballControls(this.camera, this.container.get(0));
     this.controls.zoomInto = function () {};
     this.controls.handleResize = function () {};
 

@@ -22,8 +22,10 @@ class RepresentationViewer(DOMWidget):
     # (that's what enable_notebook() does)
     _view_name = Unicode('MolecularView', sync=True)
 
+    width = CInt(sync=True)
+    height = CInt(sync=True)
 
-    def __init__(self):
+    def __init__(self, width=500, height=500):
         '''RepresentationViewer is an IPython notebook widget useful to display 3d scenes through webgl.
 
         Example
@@ -38,7 +40,8 @@ class RepresentationViewer(DOMWidget):
         '''
         super(RepresentationViewer, self).__init__()
         self.displayed = False
-
+        self.width = width
+        self.height = height
         # Things to be called when the js harnessing is intialized
         self._displayed_callbacks = []
         def callback(widget):

@@ -17,7 +17,7 @@ require.config({
         'base64-arraybuffer': '/nbextensions/base64-arraybuffer',
         'jqueryui': '/nbextensions/jquery-ui.min',
         'contextmenu': '/nbextensions/context',
-        'OrbitControls' : '/nbextensions/OrbitControls',
+        'ArcballControls' : '/nbextensions/ArcballControls',
         'chemview': '/nbextensions/chemview',
         'marchingcubes': '/nbextensions/MarchingCubes',
     },
@@ -27,7 +27,7 @@ require.config({
         },
 
         chemview: {
-            deps: ['three', 'OrbitControls', 'marchingcubes'],
+            deps: ['three', 'ArcballControls', 'marchingcubes'],
             exports: 'MolecularViewer'
         },
 
@@ -36,9 +36,9 @@ require.config({
             exports: 'THREE.OBJExporter'
         },
 
-        OrbitControls: {
+        ArcballControls: {
             deps: ['three'],
-            exports: 'THREE.OrbitControls',
+            exports: 'THREE.ArcballControls',
         },
 
         jqueryui: {
@@ -61,7 +61,7 @@ def enable_notebook():
     This function should be called before using TrajectoryWidget.
     """
     libs = ['objexporter.js', 'MarchingCubes.js',
-            'OrbitControls.js', 'filesaver.js',
+            'ArcballControls.js', 'filesaver.js',
             'base64-arraybuffer.js', 'context.js', 
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
             'context.standalone.css']

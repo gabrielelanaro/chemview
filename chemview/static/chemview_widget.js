@@ -7,7 +7,7 @@ require([
     "contextmenu",
     "base64-arraybuffer", // provides decode
     'jqueryui',
-    'OrbitControls',
+    'ArcballControls',
     'marchingcubes',
     ],
 function($, WidgetManager) {
@@ -19,16 +19,24 @@ function($, WidgetManager) {
     var MolecularView = IPython.DOMWidgetView.extend({
 
         render : function() {
+
             console.log(this);
+            var WIDTH = this.model.get('width'),
+                HEIGHT = this.model.get('height');
+
+            var model = this.model;
             var canvas = $("<canvas/>").height(HEIGHT).width(WIDTH);
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
 
-            var container = $('<div/>').css({width: HEIGHT_PX, height: WIDTH_PX})
+            var container = $('<div/>').height(HEIGHT).width(WIDTH)
                 .resizable({
                     aspectRatio: false,
                     resize: function(event, ui) {
                         mv.resize(ui.size.width, ui.size.height);
+                        model.set('width', ui.size.width);
+                        model.set('height', ui.size.height);
+
                     },
                     stop : function(event, ui) {
                         mv.render();
@@ -48,6 +56,7 @@ function($, WidgetManager) {
                 mv.animate();
                 mv.controls.handleResize();
             });
+
             mv.render();
         },
 
@@ -58,6 +67,7 @@ function($, WidgetManager) {
         setupFullScreen : function(canvas, container) {
             // currently only works in chrome. need other prefixes for firefox
             var mv = this.mv;
+            var model = this.model;
             canvas.dblclick(function () {
                 if ('webkitCancelFullScreen' in document) {
                     if (!document.webkitIsFullScreen) {
@@ -77,17 +87,21 @@ function($, WidgetManager) {
             if ('webkitCancelFullScreen' in document) {
                 document.addEventListener("webkitfullscreenchange", function() {
                         if (!document.webkitIsFullScreen) {
-                            container.width(WIDTH).height(HEIGHT);
-                            canvas.width(WIDTH).height(HEIGHT);
-                            container.trigger('resize');
+                            var width = model.get('width'),
+                                height = model.get('height');
+
+                            container.width(width).height(height);
+                            mv.resize(width, height);
                         }
                     });
             } else if ('mozCancelFullScreen' in document) {
                 document.addEventListener("mozfullscreenchange", function() {
                         if (!document.mozIsFullScreen) {
-                            container.css({width: HEIGHT_PX, height: WIDTH_PX});
-                            canvas.css({width: HEIGHT_PX, height: WIDTH_PX});
-                            mv.resize(HEIGHT_PX, WIDTH_PX);
+                            var width = model.get('width'),
+                                height = model.get('height');
+
+                            container.width(width).height(height);
+                            mv.resize(width, height);
                         }
                     });
             }
