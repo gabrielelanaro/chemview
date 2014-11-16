@@ -2,9 +2,15 @@ from .widget import RepresentationViewer
 import mdtraj as md
 from itertools import chain, groupby
 
+from IPython.html.widgets import DOMWidget
 from IPython.utils.traitlets import (Unicode, Bool, Bytes, CInt, Any,
                                      Dict, Enum, CFloat, List)
 
+class TrajectoryControls(DOMWidget):
+    _view_name = "TrajectoryControls"
+    
+    def __init__(self):
+        super(TrajectoryControls, self).__init__()
 
 class TrajectoryViewer(RepresentationViewer):
 
@@ -85,7 +91,6 @@ class TrajectoryViewer(RepresentationViewer):
                                                   'colors': [0xffff00] * len(coordinates),
                                                   'radii': [0.15] * len(coordinates)})
             self.helices_rep.append(rid)
-
         else:
             raise ValueError("Representation {} not available".format(name))
 

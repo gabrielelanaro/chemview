@@ -113,8 +113,10 @@ MolecularViewer.prototype = {
 		}
 		cur_gc.divideScalar(coordinates.length/3);
 
-		this.controls.target.copy(cur_gc);
-
+		var displacement = new THREE.Vector3().subVectors(cur_gc, this.controls.target);
+        this.controls.target.add(displacement);
+        //this.controls.object.position.add(displacement);
+        this.controls.object.lookAt(this.controls.target);
 
 		// Calculate the bounding sphere
 		var bound = 0;
@@ -136,7 +138,7 @@ MolecularViewer.prototype = {
         // move camera at a distance
         c.multiplyScalar(dist);
         this.camera.position.copy(c);
-		this.controls.update();
+		//this.controls.update();
 	},
 
 	resize: function (width, height) {

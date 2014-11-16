@@ -119,6 +119,7 @@ class RepresentationViewer(DOMWidget):
         self.displayed = True
 
 
+
 class MolecularViewer(RepresentationViewer):
 
     def __init__(self, coordinates, atom_types):
