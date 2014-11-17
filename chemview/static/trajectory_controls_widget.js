@@ -27,6 +27,7 @@ function($, WidgetManager) {
             var that = this;
             var slider = $('<div/>').slider({
                 value: 0,
+                max: this.model.get('n_frames'),
                 slide: function (event, ui) {
                     model.set('frame', ui.value);
                     that.touch();

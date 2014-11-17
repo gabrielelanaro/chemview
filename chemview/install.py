@@ -61,7 +61,7 @@ def enable_notebook():
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
             'context.standalone.css']
     fns = [resource_filename('chemview', os.path.join('static', f)) for f in libs]
-    install_nbextension(fns, verbose=1, overwrite=True)
+    install_nbextension(fns, verbose=0, overwrite=True)
     display(_REQUIRE_CONFIG)
 
     widgets = ['chemview_widget.js', 'trajectory_controls_widget.js']

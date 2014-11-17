@@ -28,7 +28,7 @@ function($, WidgetManager) {
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
 
-            var container = $('<div/>').height(HEIGHT).width(WIDTH)
+            var container = $('<div/>').height(HEIGHT).width(WIDTH) 
                 .resizable({
                     aspectRatio: false,
                     resize: function(event, ui) {
