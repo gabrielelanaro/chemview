@@ -19,6 +19,56 @@ def make_field():
 
     return f
 
+# def add_vdw_surface(self, resolution=32, mask=None):
+#     if 'vdw' in self.representations:
+#         self.remove_representation(self.representations['vdw'])
+
+#     # Let's try the surface
+#     from .marchingcubes import marching_cubes
+
+#     if mask is not None:
+#         # Do the surface on a subset
+#         coordinates = self.coordinates[mask]
+#         atom_types = self.atom_types[mask]
+#     else:
+#         coordinates = self.coordinates
+#         atom_types = self.atom_types
+
+#     radii = [0.15] * len(atom_types)
+
+#     # We contain the whole thing
+#     area_min = coordinates.min(axis=0) - 0.5
+#     area_max = coordinates.max(axis=0) + 0.5
+
+#     x = np.linspace(area_min[0], area_max[0], resolution)
+#     y = np.linspace(area_min[1], area_max[1], resolution)
+#     z = np.linspace(area_min[2], area_max[2], resolution)
+    
+#     xv, yv, zv = np.meshgrid(x, y, z)
+    
+#     blobbiness = -1
+#     # First we create the metaballs
+#     f = np.zeros((x.shape[0], y.shape[0], y.shape[0]))
+#     for r, c in zip(radii, coordinates):
+#         f += np.exp(blobbiness * 
+#             (((xv-c[0])**2 + (yv-c[1])**2 + (zv-c[2])**2)/r**2 - 1))
+    
+#     spacing = tuple((area_max - area_min)/resolution)
+#     triangles = marching_cubes(f - 1, 0)
+    
+#     faces = []
+#     verts = []
+#     for i, t in enumerate(triangles):
+#         faces.append([i * 3, i * 3 +1, i * 3 +2])
+#         verts.extend(t)
+    
+#     faces = np.array(faces)
+#     verts = area_min + np.array(verts)*spacing
+#     rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
+#                                                  'faces': faces.astype('int32')})
+
+#     self.representations['vdw'] = rep_id
+
 @nb.jit('pyobject(f4[:, :, :], f4)')
 def marching_cubes(field, isolevel):
     # The field is like gridpoints, and gridpoints define cubes. 

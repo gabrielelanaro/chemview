@@ -151,11 +151,10 @@ function($, WidgetManager) {
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'smoothline') {
                 var rep = new SmoothLineRepresentation(options.coordinates, options.color, options.resolution);
-                this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.coordinates);
             } else if (type == 'smoothtube') {
                 var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
-                this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'cylinders') {
                 var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);

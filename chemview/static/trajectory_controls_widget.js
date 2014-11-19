@@ -12,7 +12,7 @@ function($, WidgetManager) {
     var TrajectoryControls = IPython.DOMWidgetView.extend({
         render : function() {
 
-            this.fps = 30;
+            this.fps = this.model.get('fps');
             this.width = 600;
             this.height = 20;
             var model = this.model;
@@ -70,6 +70,7 @@ function($, WidgetManager) {
 
 
         update : function () {
+            this.fps = this.model.get('fps');
             return TrajectoryControls.__super__.update.apply(this);
         },
 
