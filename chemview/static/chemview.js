@@ -146,6 +146,13 @@ MolecularViewer.prototype = {
 		this.controls.handleResize();
 		this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
+
+        for (var key in this.representations) {
+            if ( this.representations[key].onResize != undefined ) {
+                this.representations[key].onResize(width, height);
+            } 
+        }
+
         this.render();
 	},
 
@@ -203,6 +210,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
     
     var vertex_shader = "\
+        uniform float scale;\
         attribute vec3 color;\
         attribute float pointSize;\
         varying vec3 vColor;\
@@ -210,7 +218,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
         void main() {\
             vColor = color;\
             vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-            gl_PointSize = pointSize * ( 150.0 / length( mvPosition.xyz ));\
+            gl_PointSize = pointSize * ( scale / length( mvPosition.xyz ));\
             gl_Position = projectionMatrix * mvPosition;\
         }\
     ";
@@ -226,14 +234,19 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
     ";
 
 
-
     var shaderMaterial = new THREE.ShaderMaterial( {
         attributes:     attributes,
+        uniforms: {'scale': 250}
         vertexShader:   vertex_shader,
         fragmentShader: fragment_shader,
         transparent:    false
     });
     this.material = shaderMaterial;
+
+    // This is a parameter we need to scale things properly
+    // https://github.com/mrdoob/three.js/blob/2d59713328c421c3edfc3feda1b116af13140b94/src/renderers/WebGLRenderer.js
+    // uniforms.scale.value = _canvas.height / 2.0; 
+
 
     this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
 
@@ -264,6 +277,10 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
     this.removeFromScene = function(scene) {
         scene.remove(this.particleSystem);
+    };
+
+    this.onResize = function(width, height) {
+        this.material.attributes['scale'] = height/2.0;
     };
 
 };

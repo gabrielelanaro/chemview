@@ -34,10 +34,13 @@ class MolecularViewer(RepresentationViewer):
 
 
 
-    def points(self):
+    def points(self, size=1.0):
         colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
+        sizes = [size] * len(self.topology['atom_types'])
+
         points = self.add_representation('points', {'coordinates': self.coordinates,
-                                                    'colors': colorlist})
+                                                    'colors': colorlist,
+                                                    'sizes': sizes})
         # Update closure
         def update(self=self, points=points):
             self.update_representation(points, {'coordinates': self.coordinates})
@@ -66,8 +69,8 @@ class MolecularViewer(RepresentationViewer):
                                                 'endCoords': self.coordinates[bond_end]})
         self.update_callbacks.append(update)
 
-    def wireframe(self):
-        self.points()
+    def wireframe(self, pointsize=1.0):
+        self.points(pointsize)
         self.lines()
 
     def line_ribbon(self):

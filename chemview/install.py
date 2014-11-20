@@ -1,3 +1,5 @@
+# Adapted from mdtraj: github.com/mdtraj/mdtraj
+
 import os
 import warnings
 from IPython.display import display, Javascript
