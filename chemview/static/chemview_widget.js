@@ -7,8 +7,7 @@ require([
     "contextmenu",
     "base64-arraybuffer", // provides decode
     'jqueryui',
-    'TrackballControls',
-    'marchingcubes',
+    'ArcballControls',
     ],
 function($, WidgetManager) {
     var HEIGHT = 600,
@@ -19,45 +18,34 @@ function($, WidgetManager) {
     var MolecularView = IPython.DOMWidgetView.extend({
 
         render : function() {
+
             console.log(this);
+            var WIDTH = this.model.get('width'),
+                HEIGHT = this.model.get('height');
+
+            var model = this.model;
             var canvas = $("<canvas/>").height(HEIGHT).width(WIDTH);
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
 
-            var container = $('<div/>').css({width: HEIGHT_PX, height: WIDTH_PX})
+            var container = $('<div/>').height(HEIGHT).width(WIDTH) 
                 .resizable({
                     aspectRatio: false,
                     resize: function(event, ui) {
                         mv.resize(ui.size.width, ui.size.height);
+                        model.set('width', ui.size.width);
+                        model.set('height', ui.size.height);
+
                     },
                     stop : function(event, ui) {
                         mv.render();
                     },
                 });
 
+            this.setupContextMenu(this);
+
             container.append(canvas);
             this.setElement(container);
-
-
-            // var coords = this.model.get('_coordinates');
-            // var topology = this.model.get('topology');
- 
-            // var rep = new PointLineRepresentation(this.ndarrayToTypedArray(coords),
-            //                                       topology.bonds, 
-            //                                       this.model.get('color_scheme'));
-            // mv.addRepresentation(rep);
-
-            // var surface = this.model.get('surface');
-
-            // var surf = new SurfaceRepresentation(this.ndarrayToTypedArray(surface.vertices),
-            //                                      this.ndarrayToTypedArray(surface.faces));
-            // mv.addRepresentation(surf);
-
-            // this.update();
-            
-            // this.pointRepresentation = rep;
-
-            // mv.zoomInto(this.ndarrayToTypedArray(coords));
             mv.renderer.setSize(WIDTH, HEIGHT);
 
             this.setupFullScreen(canvas, container);
@@ -67,19 +55,18 @@ function($, WidgetManager) {
                 mv.animate();
                 mv.controls.handleResize();
             });
+
             mv.render();
         },
 
         update : function () {
-
-            console.log('MolecularView.update');
-
             return MolecularView.__super__.update.apply(this);
         },
 
         setupFullScreen : function(canvas, container) {
             // currently only works in chrome. need other prefixes for firefox
             var mv = this.mv;
+            var model = this.model;
             canvas.dblclick(function () {
                 if ('webkitCancelFullScreen' in document) {
                     if (!document.webkitIsFullScreen) {
@@ -99,29 +86,29 @@ function($, WidgetManager) {
             if ('webkitCancelFullScreen' in document) {
                 document.addEventListener("webkitfullscreenchange", function() {
                         if (!document.webkitIsFullScreen) {
-                            container.width(WIDTH).height(HEIGHT);
-                            canvas.width(WIDTH).height(HEIGHT);
-                            container.trigger('resize');
+                            var width = model.get('width'),
+                                height = model.get('height');
+
+                            container.width(width).height(height);
+                            mv.resize(width, height);
                         }
                     });
             } else if ('mozCancelFullScreen' in document) {
                 document.addEventListener("mozfullscreenchange", function() {
                         if (!document.mozIsFullScreen) {
-                            container.css({width: HEIGHT_PX, height: WIDTH_PX});
-                            canvas.css({width: HEIGHT_PX, height: WIDTH_PX});
-                            mv.resize(HEIGHT_PX, WIDTH_PX);
+                            var width = model.get('width'),
+                                height = model.get('height');
+
+                            container.width(width).height(height);
+                            mv.resize(width, height);
                         }
                     });
             }
         },
 
-        /** We receive custom messages from our conterpart */
+        /* We receive custom messages from our python conterpart with DOMWidget.send */
         on_msg: function(msg) {
-            console.log('receivedMsg');
-            console.log(msg);
-
             if (msg.type == 'callMethod') {
-                console.log(msg.args);
                 this[msg.methodName].call(this, msg.args);
             }
 
@@ -143,24 +130,42 @@ function($, WidgetManager) {
                             });
 
 
-            if (type == 'point') {
-                var rep = new PointLineRepresentation(options.coordinates, [], options.colors);
+            if (type == 'points') {
+                var rep = new PointsRepresentation(options.coordinates, options.colors, options.sizes);
                 this.mv.zoomInto(options.coordinates);
-                this.mv.controls.handleResize();
                 this.mv.addRepresentation(rep, repId);
+            } else if (type == 'lines') {
+                var rep = new LineRepresentation(options.startCoords, options.endCoords, options.startColors, options.endColors);
+                this.mv.zoomInto(options.startCoords);
+                this.mv.addRepresentation(rep, repId);
+
             } else if (type == 'surface') {
-                var rep = new SurfaceRepresentation(options.verts, options.faces);
+                var rep = new SurfaceRepresentation(options.verts, options.faces, options.style);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.controls.handleResize();
             } else if (type == 'spheres') {
-                var rep = new SphereRepresentation(options.coordinates, options.radii, options.resolution);
+                var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
-            } 
+                this.mv.zoomInto(options.coordinates);
+            } else if (type == 'box') {
+                var rep = new BoxRepresentation(options.start, options.end, options.color);
+                this.mv.addRepresentation(rep, repId);
+            } else if (type == 'smoothline') {
+                var rep = new SmoothLineRepresentation(options.coordinates, options.color, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.coordinates);
+            } else if (type == 'smoothtube') {
+                var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+            } else if (type == 'cylinders') {
+                var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);
+                this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.startCoords);
+            }
             else {
                 console.log("Undefined representation " + type);
             }
 
-            
+            this.mv.controls.handleResize();
             this.mv.render();      
         },
 
@@ -178,15 +183,14 @@ function($, WidgetManager) {
                     }
                 });
 
-            console.log(repId);
-            console.log(repId);
             var rep = this.mv.getRepresentation(repId);
             rep.update(options);
             this.mv.render();
         },
 
-        removeRepresentation: function (repId) {
-            // TODO: implement removal so we are complete
+        removeRepresentation: function (args) {
+            this.mv.removeRepresentation(args.repId);
+            this.mv.render();
         },
 
         ndarrayToTypedArray: function (array) {
@@ -202,10 +206,28 @@ function($, WidgetManager) {
                 console.log('Type ' + array['type'] + ' is not supported');
             }
 
-        }
+        },
+
+        setupContextMenu : function(viewer) {
+            context.init({preventDoubleContext: true});
+            this.on('exportImg', this._handle_export.bind(this));
+            var menu = [{header: 'Inline Display'},
+                    {text: 'PNG',
+                    action: function () {
+                        viewer.trigger("exportImg");
+                    }
+                },];
+            context.attach('canvas', menu);
+
+        },
+        
+        _handle_export: function(){
+            // Handles when the displayimage menu is clicked
+            var dataURL = this.mv.renderer.domElement.toDataURL('image/png');
+            this.send({event: 'displayImg', dataUrl: dataURL});
+        },
 
     });
-
 
     WidgetManager.register_widget_view('MolecularView', MolecularView);
 });
