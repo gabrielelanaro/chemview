@@ -28,7 +28,6 @@ class TrajectoryViewer(MolecularViewer):
         link((self, 'frame'), (self.controls, 'frame'))
 
     def _frame_changed(self, name, old, new):
-        print 'changed'
         self.coordinates = self.coordinate_frames[new]
 
     def _ipython_display_(self):

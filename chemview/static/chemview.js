@@ -236,7 +236,8 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
     var shaderMaterial = new THREE.ShaderMaterial( {
         attributes:     attributes,
-        uniforms: {'scale': 250}
+        uniforms: {'scale': { 'type': 'f',
+                              'value': 250} },
         vertexShader:   vertex_shader,
         fragmentShader: fragment_shader,
         transparent:    false
@@ -280,7 +281,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
     };
 
     this.onResize = function(width, height) {
-        this.material.attributes['scale'] = height/2.0;
+        this.material.uniforms.scale.value = height/2.0;
     };
 
 };
