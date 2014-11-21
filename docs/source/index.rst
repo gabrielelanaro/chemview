@@ -6,7 +6,10 @@
 Welcome to chemview's documentation!
 ====================================
 
-chemview is a new generation molecular viewer designed for the IPython notebook.
+chemview is an interactive molecular viewer designed for the IPython notebook.
+
+.. raw:: html
+    :file: "/_static/minidemo.html"
 
 Contents:
 
