@@ -1,5 +1,4 @@
 <div>
-<h1>Demo</h1>
 <script type="text/javascript" src="_static/js/jquery.js"></script>
 <script type="text/javascript" src="_static/js/three.min.js"></script>
 <script type="text/javascript" src="_static/js/ArcballControls.js"></script>
@@ -9,14 +8,12 @@
 <script type="text/javascript" src="_static/protein_rendered.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        var width=600, height=300;
-
-        var canvas = $("#molecular_viewer").width(width).height(height);
+        var canvas = $("#molecular_viewer").css({width: 400, height: 400});
         var mv = new MolecularViewer(canvas);
         mv.deserialize(PROTEIN_DATA);
         mv.animate();
         mv.zoomInto(mv.representations[0].options.startCoords);
-        mv.resize(width, height);
+        mv.resize(canvas.width(), canvas.height());
     });
 
 </script>
