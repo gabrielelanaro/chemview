@@ -35,6 +35,16 @@ Contents:
 
    quick
 
+chemview is licensed under the LGPL2 and is hosted on github at http://github.com/gabrielelanaro/chemview.
+
+Credits
+-------
+
+chemview branched from the mdtraj_ project in an effort to make trajectory viewing possible in the browser. It is developed mainly by `Gabriele Lanaro <http://gabrielelanaro.github.io>`_. While the code is original work, the idea was inspired by iview_.
+
+
+.. _mdtraj: http://mdtraj.org
+.. _iview: https://github.com/HongjianLi/iview
 
 Indices and tables
 ==================

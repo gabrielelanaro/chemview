@@ -9,5 +9,6 @@ setup(name='chemview',
       author_email='gabriele.lanaro@gmail.com',
       url='https://github.com/gabrielelanaro/chemview',
       packages=find_packages(),
+      package_data = {'': ['*.js', "*.css"]},
       include_package_data=True
       )
