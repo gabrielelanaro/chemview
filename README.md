@@ -12,9 +12,10 @@ chemlab requires a few basic dependencies to be installed:
 - ipython 2.x (development version 0.3 breaks the widget API)
 - numba (optional)
 
+Open a shell and type:
+
     pip install ipython[notebook]
     pip install numpy
-
     # Download chemview
     git clone https://github.com/gabrielelanaro/chemview
     cd chemview
