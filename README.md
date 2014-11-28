@@ -1,5 +1,7 @@
 # chemview
 
+[![Documentation Status](https://readthedocs.org/projects/chemview/badge/?version=latest)](https://readthedocs.org/projects/chemview/?badge=latest)
+
 The new generation molecular viewer for the IPython notebook.
 
 # Installation
