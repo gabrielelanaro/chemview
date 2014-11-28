@@ -15,7 +15,7 @@ Open a terminal or command line and install using pip.
     pip install ipython[notebook] # Any 2.x version is fine
     pip install numpy
     # Latest chemview
-    pip install git+git@github.com:gabrielelanaro/chemview.git
+    pip install git+git://github.com/gabrielelanaro/chemview
 
 Quick Start
 -----------
