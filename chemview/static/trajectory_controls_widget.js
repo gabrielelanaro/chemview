@@ -32,6 +32,10 @@ function($, WidgetManager) {
                     model.set('frame', ui.value);
                     that.touch();
                 },
+                start: function(event, ui) {
+                    that.pause();
+                    that.running = false;
+                },
             });
 
             this.running = false;
