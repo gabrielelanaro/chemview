@@ -21,7 +21,7 @@ function($, WidgetManager) {
             var tc = $('<div/>');
             tc.addClass("ui-widget-header")
               .addClass("ui-corner-all")
-              .css({ padding: "6px"})
+              .css({ padding: "6px", display: 'flex'})
               .width(this.width);
 
             var that = this;
@@ -52,15 +52,31 @@ function($, WidgetManager) {
                         that.running = false;
                     }
                 });
+
             playButton.width(this.height).height(this.height);
             playButton.css("float", "left");
             playButton.appendTo(tc);
 
+            // Calculate the number of character to prepare for the correct space
+            
+            var maxLength = String(model.get("n_frames")).length;
+
+            var frameIndicator = $("<span/>").text(model.get("frame") + "/" + model.get("n_frames"))
+                                             .css( { "width": (2*maxLength) + "em",
+                                                     "text-align": "right",
+                                                     "margin-right": "6px" } );
+
+
+            model.on("change:frame", function () {
+                frameIndicator.text(model.get("frame") + "/" + model.get("n_frames"));
+            });
             // We add an extra container for the slider just for the styling
-            var sliderContainer = $("<div/>").css({ margin: "4px 16px 0px 36px" });
+            var sliderContainer = $("<div/>").css({ "margin": "4px 16px" ,
+                                                    "flex-grow" : "1" });
 
             slider.appendTo(sliderContainer);
             sliderContainer.appendTo(tc);
+            frameIndicator.appendTo(tc);
 
             this.setElement(tc);
 
