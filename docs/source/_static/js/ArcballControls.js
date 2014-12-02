@@ -441,7 +441,7 @@ THREE.ArcballControls = function ( object, domElement ) {
 
 	}
 
-	function onMouseUp( /* event */ ) {
+	function onMouseUp( event ) {
 
 		if ( scope.enabled === false ) return;
 
