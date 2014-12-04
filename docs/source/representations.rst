@@ -100,22 +100,8 @@ Once you create your molecular viewer, you can display the molecule in a variety
 Viewing Molecules with Chemlab
 -------------------------------
 
-In the near future, chemlab_ will provide integration.
-
-While you wait, take a look at the `docs <chemlab_>`_ and learn about chemlab.
-
-..
-    .. warning:: There is no implemnetation yet
-
-    Chemlab uses chemview as a library and provides a way to directly display
-    molecules in the IPython notebook.
-
-    .. code:: python
-
-        from chemlab.notebook import download_molecule, display_molecule
-
-        mol = download_molecule('arginine')
-        display_molecule(mol)
+The development version of chemlab_ provides a preliminary integration with chemview, 
+check out the example `notebook <http://nbviewer.ipython.org/github/chemlab/chemlab/blob/master/examples/New%20IPython%20support.ipynb>`_.
 
 Viewing Molecules with MDTraj
 -----------------------------
@@ -156,22 +142,22 @@ For example, to add three points on the screen we will use the following paramet
              being outside of the realm of Python doesn't provide nice exception tracebacks.
              Be rigorous with parameter types.
 
-List of the available representations, with the respective options:
+For more examples (with pictures) you can check the `test notebook <http://nbviewer.ipython.org/github/gabrielelanaro/chemview/blob/master/TestNotebook.ipynb>`_.
+
+Below reference of the available representations, along with their options:
 
 .. glossary::
 
     points
         display a set of coordinates as points with different colors and sizes.
 
-        .. glossary::
+        Options:
 
-            coordinates
+            - coordinates
                 numpy array of 3D coordinates (float32)
-
-            sizes
+            - sizes
                 python list of floats representing the size of each point
-
-            colors
+            - colors
                 python list of 32 bit integers representing the color of each point. 
 
                 Example using HEX representation: ``[0xffffff, 0x00ffff, 0xff0000, ...]``
@@ -179,57 +165,84 @@ List of the available representations, with the respective options:
     lines
         display a set of lines with different colors.
 
-        .. glossary::
+        Options:
         
-            startCoords
+            - startCoords
                 numpy array of 3D coordinates representing the starting point of each line
-
-            endCoords
+            - endCoords
                 numpy array of 3D coordinates representing the ending point of each line
-
-            startColors
-            endColors
+            - startColors
+                list of 32 bit integers corresponding to the color of the starting point
+            - endColors
+                list of 32 bit integers  corresponding to the color of the ending point
 
     cylinders
-        display a set of cylinders
+        display a set of cylinders. This is a slow primitive, avoid using it for animations; use `lines` instead.
 
-        .. glossary::
+        Options:
 
-            startCoords
+            - startCoords
                 numpy array of 3D coordinates representing the starting point of each cylinder
 
-            endCoords
+            - endCoords
                 numpy array of 3D coordinates representing the ending point of each cylinder
 
-            colors
-            radii
+            - colors
+                list of 32 bit integers corresponding to the color of each cylinder
+
+            - radii
+                list of float corresponding to the radius of each cylinder
 
     smoothline
-        display a smooth line that passes through a set of points
+        display a smooth line that passes through a set of points.
 
-        .. glossary::
+        Options:
 
-            coordinates
-            color
+            - coordinates
+                numpy array of 3D coordinates representing the `control points` of the smooth line.
+
+            - color
+                32 bit integer (hex) color of the line
+
+            - resolution
+                int, number of subdivision along the path between control points. Controls the `smoothness`
 
     smoothtube
+        display a smooth tube that passes through a set of points. This is a slow primitive, not suitable for animating very large objects; use `smoothline` instead.
 
-        .. glossary::
+        Options: 
 
-            coordinates
-            color
-            radius
+            - coordinates
+                numpy array of 3D coordinates representing the `control points` of the smooth tube.
+
+            - color
+                32 bit integer (hex) color of the tube
+
+            - radius
+                float representing the radius of the tube
+
+            - resolution
+                int, number of subdivision along the path between control points. Controls the `smoothness`
 
     spheres
+        display a set of spheres. This primitive is slow, avoid using it for animations; use `points` instead.
 
-        .. glossary::
+        Options:
 
-            coordinates
-            colors
-            radii
+            - coordinates
+                numpy array of 3D coordinates representing the position of the spheres.
+
+            - colors
+                list of 32 bit integers representing the color of each sphere
+
+            - radii
+                list of float, radius of each sphere
+
+            - resolution
+                int, number of vertical and horizontal subdivisions to make the sphere:
+                high resolution means slow performance.
 
 
 .. _chemlab: https://chemlab.readthedocs.org
-
 .. _mdtraj: http://mdtraj.org
 
