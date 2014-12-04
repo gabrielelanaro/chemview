@@ -183,11 +183,16 @@ MolecularViewer.prototype = {
     deserialize : function (json) {
         var representationMap = {
             points: PointsRepresentation,
-            lines: LineRepresentation
+            lines: LineRepresentation,
+            cylinders: CylinderRepresentation,
+            spheres: SphereRepresentation,
+            smoothline: SmoothLineRepresentation,
+            smoothtube: SmoothTubeRepresentation
         };
 
 
         for (var key in json.representations) {
+            console.log(json.representations[key]);
             var rep = representationMap[json.representations[key].type].deserialize(json.representations[key]);
             this.addRepresentation(rep, key);
           };
@@ -741,6 +746,24 @@ var SmoothTubeRepresentation = function (coordinates, radius, color, resolution)
             this.geometry.verticesNeedUpdate = true;
         }
     };
+
+    this.serialize = function() {
+        var json = {};
+        json.type = 'smoothtube';
+        json.options = { coordinates: { type: "float32",
+                                        data: encode(this.options.coordinates.buffer) },
+                         radius: this.options.radius,
+                         color: this.options.color,
+                         resolution: this.options.resolution };
+        return json;
+    };
+};
+
+SmoothTubeRepresentation.deserialize = function(json) {
+    return new SmoothTubeRepresentation(deserialize_array(json.options.coordinates),
+                                        json.options.radius,
+                                        json.options.color,
+                                        json.options.resolution);
 };
 
 /**
@@ -826,8 +849,31 @@ var CylinderRepresentation = function (startCoords, endCoords, radii, colors, re
                 cylinder.geometry.verticesNeedUpdate = true;
             }
         }
-    }
+    };
 
+    this.serialize = function() {
+        var json = {};
+        json.type = 'cylinders';
+        json.options = { startCoords: { type: "float32",
+                                        data: encode(this.options.startCoords.buffer) },
+                         endCoords: { type: "float32",
+                                        data: encode(this.options.endCoords.buffer) },
+                         radii: { type: "float32",
+                                        data: encode(new Uint32Array(this.options.radii).buffer) },
+                         colors: { type: "uint32",
+                                      data: encode(new Uint32Array(this.options.colors).buffer) },
+                         resolution: this.options.resolution };
+        return json;
+    };
+
+};
+
+CylinderRepresentation.deserialize = function (json) {
+    return new CylinderRepresentation(deserialize_array(json.options.startCoords),
+                                      deserialize_array(json.options.endCoords),
+                                      deserialize_array(json.options.radii),
+                                      deserialize_array(json.options.colors),
+                                      json.options.resolution);
 };
 
 // Utilities
