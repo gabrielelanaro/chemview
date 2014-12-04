@@ -34,6 +34,8 @@ Contents:
    :maxdepth: 2
 
    quick
+   representations
+   interactive
 
 chemview is licensed under the LGPL2 and is hosted on github at http://github.com/gabrielelanaro/chemview.
 

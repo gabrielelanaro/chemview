@@ -71,9 +71,11 @@ import fnmatch
 
 def format_class(node, exclude=['_*']):
     template = textwrap.dedent('''
-    .. py:class:: {name}
+    .. py:class:: {name}{args}
+    
     {documentation}
     ''')
+
 
     methods = []
     for attr_node in node.body:
@@ -83,12 +85,25 @@ def format_class(node, exclude=['_*']):
                 continue
             # adding the method to the rendered part
             methods.append(
-                format_method(node.name + '.' + attr_node.name,
-                              attr_node))
-    doc = ast.get_docstring(node)
+                indent(format_method(attr_node.name,
+                                     attr_node)))
+
+    # Refer to the __init__ method for class documentation 
+    # and signature
+    
+    init = [attr_node for attr_node in node.body if isinstance(attr_node, ast.FunctionDef)
+                                                    and attr_node.name == '__init__']
+    if init:
+        doc = ast.get_docstring(init[0])
+        args = '(' + codegen.to_source(init[0].args) + ')'
+    else:
+        doc = ast.get_docstring(node)
+        args = ''
+
     doc = indent(doc) if doc else ''
     ret =  template.format(name=node.name,
-                           documentation=doc)
+                           documentation=doc,
+                           args=args)
 
     ret += '\n'.join(methods)
     return ret

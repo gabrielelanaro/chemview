@@ -5,14 +5,17 @@
 <script type="text/javascript" src="_static/js/base64-arraybuffer.js"></script>
 <script type="text/javascript" src="_static/js/chemview.js"></script>
 
-<script type="text/javascript" src="_static/protein_rendered.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
         var canvas = $("#molecular_viewer").css({width: 400, height: 400});
         var mv = new MolecularViewer(canvas);
-        mv.deserialize(PROTEIN_DATA);
-        mv.animate();
-        mv.zoomInto(mv.representations[0].options.startCoords);
+
+        $.getJSON('_static/protein_rendered.json', function (data){
+            mv.deserialize(data);
+            mv.animate();
+            mv.zoomInto(mv.representations[0].options.startCoords);
+        });
+
         mv.resize(canvas.width(), canvas.height());
     });
 

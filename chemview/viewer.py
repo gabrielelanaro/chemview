@@ -14,18 +14,8 @@ class MolecularViewer(RepresentationViewer):
         '''Create a Molecular Viewer widget to be displayed in IPython notebook.
 
         :param np.ndarray coordinates: A numpy array containing the 3D coordinates of the atoms to be displayed
-        :param dict topology: A dict specifying the topology using the following fields
-                              "atom_types": a list of atom types, ["H", "C", "N", "O", ...]
-                              "bonds: a list of tuples indicating the start and end of the bond 
-                                      [[0, 1], [1, 2], ...],
-                              
-                              "atom_names": a list of atom names, as commonly referred in pdb files ["HA", "CA", "N", ...]
-                              "residue_types": a list of residue names:: ["ALA", "GLY", ...]
-                              "secondary_structure": secondary structure of each residue
-                              "residue_indices": a list of list of indices for
-
-
-
+        :param dict topology: A dict specifying the topology as described in the User Guide.
+        
         '''
         super(MolecularViewer, self).__init__(width, height)
         self.update_callbacks = []
@@ -35,6 +25,10 @@ class MolecularViewer(RepresentationViewer):
 
 
     def points(self, size=1.0):
+        """Display the system as points.
+
+        :param float size: the size of the points.
+        """
         colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
         sizes = [size] * len(self.topology['atom_types'])
 
@@ -47,6 +41,9 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
 
     def lines(self):
+        '''Display the system bonds as lines.
+
+        '''
         if "bonds" not in self.topology:
             return
 
@@ -70,10 +67,15 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
 
     def wireframe(self, pointsize=1.0):
+        '''Display atoms as points of size *pointsize* and bonds as lines.'''
         self.points(pointsize)
         self.lines()
 
     def line_ribbon(self):
+        '''Display the protein secondary structure as a white lines that passes through the 
+           backbone chain.
+
+        '''
         # Control points are the CA (C alphas)
         backbone = np.array(self.topology['atom_names']) == 'CA'
         smoothline = self.add_representation('smoothline', {'coordinates': self.coordinates[backbone],
@@ -84,6 +86,10 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
 
     def cylinder_and_strand(self):
+        '''Display the protein secondary structure as a white, 
+           solid tube and the alpha-helices as yellow cylinders.
+
+        '''
         top = self.topology
         # We build a  mini-state machine to find the 
         # start end of helices and such
@@ -142,5 +148,6 @@ class MolecularViewer(RepresentationViewer):
                                                   'endCoords': self.coordinates[list(end_idx)]})
 
         self.update_callbacks.append(update)
+
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
