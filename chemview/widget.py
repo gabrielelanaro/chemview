@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from uuid import uuid4
+from collections import defaultdict
 
 import numpy as np
 
@@ -41,12 +42,21 @@ class RepresentationViewer(DOMWidget):
         self.displayed = False
         self.width = width
         self.height = height
+
         # Things to be called when the js harnessing is intialized
         self._displayed_callbacks = []
         def callback(widget):
             for cb in widget._displayed_callbacks:
                 cb(widget)
         self.on_displayed(callback)
+
+        # Store the events sent from the javascript side
+        self._event_handlers = defaultdict(list)
+
+        # What to do when we export
+        def callback(content):
+            display(Image(url=content.get('dataUrl')))
+        self._connect_event('displayImg', callback)
 
     def add_representation(self, rep_type, options):
         '''Add a 3D representation to the viewer.  See User Guide for
@@ -77,6 +87,18 @@ class RepresentationViewer(DOMWidget):
 
         '''
         self._remote_call('updateRepresentation', repId=rep_id, options=options)
+
+    def _connect_event(self, event_name, callback):
+        '''Respond to an event sent by the Javascript side.
+
+        Events available:
+        
+            - displayImg
+            - serialize
+
+
+        '''
+        self._event_handlers[event_name].append(callback)
 
     def _remote_call(self, method_name, **kwargs):
         '''Call a method remotely on the javascript side'''
@@ -113,8 +135,9 @@ class RepresentationViewer(DOMWidget):
 
     def _handle_custom_msg(self, content):
         # Handle custom messages sent by the javascript counterpart
-        if content.get('event', '') == 'displayImg':
-            display(Image(url=content.get('dataUrl')))
+        event = content.get('event', '')
+        for cb in self._event_handlers[event]:
+            cb(content)
 
 
     def _ipython_display_(self, **kwargs):

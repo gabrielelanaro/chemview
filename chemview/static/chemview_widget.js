@@ -227,6 +227,9 @@ function($, WidgetManager) {
             this.send({event: 'displayImg', dataUrl: dataURL});
         },
 
+        _handle_serialize: function () {
+            this.send({event: 'serialize', json: this.mv.serialize()});
+        }
     });
 
     WidgetManager.register_widget_view('MolecularView', MolecularView);
