@@ -49,11 +49,12 @@ class RepresentationViewer(DOMWidget):
         self.on_displayed(callback)
 
     def add_representation(self, rep_type, options):
-        '''Add a 3D representation to the viewer. 
+        '''Add a 3D representation to the viewer.  See User Guide for
+        a complete description of the representations available.
+        
+        :return: An unique hexadecimal identifier for the representation.
+        :rtype: str
 
-        See User Guide for a complete description of the representations available. 
-
-        :return str rep_id: An unique hexadecimal identifier for the representation.
         '''
         # Add our unique id to be able to refer to the representation
         rep_id = uuid4().hex
