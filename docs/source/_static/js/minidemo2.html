@@ -1,0 +1,25 @@
+<div>
+<script type="text/javascript" src="/_static/js/jquery.js"></script>
+<script type="text/javascript" src="/_static/js/three.min.js"></script>
+<script type="text/javascript" src="/_static/js/ArcballControls.js"></script>
+<script type="text/javascript" src="/_static/js/base64-arraybuffer.js"></script>
+<script type="text/javascript" src="/_static/js/chemview.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var canvas = $("#molecular_viewer").css({width: 400, height: 400});
+        var mv = new MolecularViewer(canvas);
+
+        $.getJSON('/_static/protein_cylinder_strand.json', function (data){
+            mv.deserialize(data);
+            mv.animate();
+            mv.controls.dollyIn(1.8);
+        });
+
+        mv.resize(canvas.width(), canvas.height());
+    });
+
+</script>
+
+<canvas id="molecular_viewer"></canvas>
+</div>

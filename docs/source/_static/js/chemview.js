@@ -859,7 +859,7 @@ var CylinderRepresentation = function (startCoords, endCoords, radii, colors, re
                          endCoords: { type: "float32",
                                         data: encode(this.options.endCoords.buffer) },
                          radii: { type: "float32",
-                                        data: encode(new Uint32Array(this.options.radii).buffer) },
+                                        data: encode(new Float32Array(this.options.radii).buffer) },
                          colors: { type: "uint32",
                                       data: encode(new Uint32Array(this.options.colors).buffer) },
                          resolution: this.options.resolution };
