@@ -35,7 +35,7 @@ Contents:
 
    quick
    representations
-   interactive
+   interactivity
 
 chemview is licensed under the LGPL2 and is hosted on github at http://github.com/gabrielelanaro/chemview.
 

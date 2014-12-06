@@ -22,7 +22,7 @@ class TrajectoryViewer(MolecularViewer):
 
         '''
         self.coordinate_frames = coordinate_frames
-        super(TrajectoryViewer, self).__init__(coordinate_frames[0], topology)
+        super(TrajectoryViewer, self).__init__(coordinate_frames[0], topology, width=width, height=height)
 
         self.controls = TrajectoryControls(len(coordinate_frames))
         link((self, 'frame'), (self.controls, 'frame'))
