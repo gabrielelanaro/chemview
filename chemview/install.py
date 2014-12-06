@@ -55,7 +55,7 @@ css  = ['/nbextensions/context.standalone.css']
 def enable_notebook():
     """Enable IPython notebook widgets to be displayed.
 
-    This function should be called before using TrajectoryWidget.
+    This function should be called before using the chemview widgets.
     """
     libs = ['objexporter.js', 
             'ArcballControls.js', 'filesaver.js',

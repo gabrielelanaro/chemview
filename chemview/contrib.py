@@ -1,8 +1,14 @@
-'''Nice functions for integration'''
-import mdtraj as md
+'''Integration with other programs'''
 
 def topology_mdtraj(traj):
-    '''Generate topology spec for the MolecularViewer from mdtraj'''
+    '''Generate topology spec for the MolecularViewer from mdtraj.
+
+    :param mdtraj.Trajectory traj: the trajectory
+    :return: A chemview-compatible dictionary corresponding to the topology defined in mdtraj.
+
+    '''
+    import mdtraj as md
+
     top = {}
     top['atom_types'] = [a.element.symbol for a in traj.topology.atoms]
     top['atom_names'] = [a.name for a in traj.topology.atoms]

@@ -1,7 +1,7 @@
 Animation
 =========
 
-In this section we'll see how to update the coordinates of a system. We'll start by creating a  water molecule using the MolecularViewer:
+In this section we'll see how to update the molecular viewer. We'll start by creating a water molecule using the :class:`~chemview.MolecularViewer`:
 
 .. code:: python
 
@@ -21,7 +21,7 @@ In this section we'll see how to update the coordinates of a system. We'll start
 
 .. image:: /_static/images/water_wireframe.png
 
-then, all we need to do to move the molecule is to assign a new vector to the attribute MolecularViewer.coordinates.
+then, all we need to do to move the molecule is to assign a new vector to the attribute :class:`~chemview.MolecularViewer.coordinates`.
  To translate the molecule, we add 0.1 to the x coordinate of each atom:
 
  .. code:: python
@@ -32,14 +32,14 @@ then, all we need to do to move the molecule is to assign a new vector to the at
 
 .. important::
 
-    To propery update the coordinates, you have to *assign* the new coordinates with the *equals* sign, or the system won't detect the update. Example:
+    To properly update the coordinates, you have to the ``=`` (equal) sign, or the system won't detect the update. Example:
 
     .. code:: python
 
-        # Good, update will be triggered
+        # Good: update will be triggered
         mv.coordinates = mv.coordinates + [0.1, 0.0, 0.0]
 
-        # Bad, update won't be triggered
+        # Bad: update won't be triggered
         mv.coordinates += [0.1, 0.0, 0.0]
 
 
@@ -47,10 +47,10 @@ then, all we need to do to move the molecule is to assign a new vector to the at
 Visualizing Trajectories/Frames
 -------------------------------
 
-chemview can display snapshots of systems evolving in time, using a video-player like interface. This functionality is provided by the TrajectoryViewer class.
-The TrajectoryViewer widget is a combination of a MolecularViewer widget and a set of controls that automatically update the frames. 
+Chemview can display snapshots of systems evolving in time, using a video-player like interface. This functionality is provided by the TrajectoryViewer class.
+The TrajectoryViewer widget is a combination of a :class:`~chemview.MolecularViewer` widget and a set of controls that automatically update the frames. 
 
-To start, we'll see expand of the previous example. To use the TrajectoryViewer, we need a list of coordinates (one for each frame), and the topology. 
+To start, we'll see expand of the previous example. To use the :class:`~chemview.TrajectoryViewer`, we need a list of coordinates (one for each frame), and the topology. 
 We first create the initial frame *start_coordinates*, then we translate those coordinates by 0.1 units in the x axis for 30 times, once for each frame:
 
 .. code:: python
@@ -82,7 +82,7 @@ You should now have a nice bar that lets you play, pause, rewind your frames!
 Using mdtraj
 ~~~~~~~~~~~~
 
-How do we use the trajectory viewer in practice? We can get some help from the library mdtraj_.
+How do we use the trajectory viewer in practice? To show a real-world example we can get some help from the library mdtraj_.
 
 With mdtraj_ we can read a system and a series of snapshots generated from a simulation.
 
@@ -91,7 +91,7 @@ With mdtraj_ we can read a system and a series of snapshots generated from a sim
     import mdtraj as md
     traj = md.load_pdb('2M6K.pdb')
 
-An mdtraj trajectory contains the coordinates for each frame  in the attribute ``traj.xyz``), plus a topology specification in ``traj.topology``. The topology can be converted to chemview format using the utility topology_mdtraj(), that takes the trajectory as an input.
+An mdtraj trajectory contains the coordinates for each frame  in the attribute ``traj.xyz``), plus a topology specification in ``traj.topology``. The topology can be converted to chemview format using the utility :py:func:`chemview.contrib.topology_mdtraj`, that takes the trajectory as an input.
 
 .. code:: python
 
