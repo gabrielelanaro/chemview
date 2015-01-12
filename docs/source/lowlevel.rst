@@ -3,4 +3,4 @@ Low Level API
 
 .. toctree::
     
-    api/widget
+    api/index
