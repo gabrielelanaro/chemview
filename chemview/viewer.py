@@ -1,6 +1,8 @@
 import numpy as np
 from .widget import RepresentationViewer, TrajectoryControls
 from .utils import get_atom_color
+from .marchingcubes import marching_cubes
+
 
 from IPython.utils.traitlets import Any
 
@@ -151,3 +153,34 @@ class MolecularViewer(RepresentationViewer):
 
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
+
+    def add_surface(self, function, resolution=32, isolevel=0.3):
+
+        # We want to make a container that contains the whole molecule
+        # and surface
+        area_min = self.coordinates.min(axis=0) - 2.0
+        area_max = self.coordinates.max(axis=0) + 2.0
+
+        x = np.linspace(area_min[0], area_max[0], resolution)
+        y = np.linspace(area_min[1], area_max[1], resolution)
+        z = np.linspace(area_min[2], area_max[2], resolution)
+      
+        xv, yv, zv = np.meshgrid(x, y, z)
+        spacing = tuple((area_max - area_min)/resolution)
+        triangles = marching_cubes(function(xv, yv, zv), isolevel)
+      
+        if len(triangles) == 0:
+            ## NO surface
+            return
+        
+        faces = []
+        verts = []
+        for i, t in enumerate(triangles):
+           faces.append([i * 3, i * 3 +1, i * 3 +2])
+           verts.extend(t)
+  
+        faces = np.array(faces)
+        verts = area_min + np.array(verts)*spacing
+        rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
+                                                     'faces': faces.astype('int32')})
+

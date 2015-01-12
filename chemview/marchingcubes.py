@@ -113,6 +113,10 @@ def marching_cubes(field, isolevel):
                         triangle.append(v)
                     triangles.append(triangle)
     triangles_ = np.array(triangles) # triangles_ NUMBA BUG
+
+    if len(triangles) == 0:
+        return np.array([])
+
     # TODO Let's just invert for now, but no one knows what the problem is
     triangles_[:, :, [0, 1]] = triangles_[:, :, [1, 0]]
     return triangles_
