@@ -56,6 +56,51 @@ function($, WidgetManager) {
                 mv.controls.handleResize();
             });
 
+            // Update the camera when the controls are changed
+            var model = this.model;
+            var that = this;
+
+            // We update the camera info at all times
+            that.mv.controls.staticMoving = this.model.get('static_moving');
+            this.model.on('change:static_moving', function () {
+                that.mv.controls.staticMoving = this.model.get('static_moving');
+            }
+                );
+            mv.controls.addEventListener( 'change' , 
+                                            function () {
+                                                that.model.set(
+                                                    {'camera_str': JSON.stringify(
+                                                        { cid : that.cid,
+                                                          position : that.mv.camera.position,
+                                                          quaternion : that.mv.camera.quaternion })
+                                                    });
+
+                                                that.touch();
+                                            }
+            );
+
+
+            // We listen for changes in the camera
+            this.model.on("change:camera_str", function (context) {
+                var camera_spec = JSON.parse(that.model.get('camera_str'));
+                
+                // This function is only for external updates to the camera.
+                // Avoid updating yourself in an infinite loop
+                if (camera_spec.cid != that.cid) {
+                    var q = camera_spec.quaternion,
+                        p = camera_spec.position;
+
+                    that.mv.controls.lastPosition.set( p.x, p.y, p.z );
+                    that.mv.camera.position.set( p.x, p.y, p.z );
+
+                    that.mv.controls.lastQuaternion.set( q._x, q._y, q._z, q._w );
+                    that.mv.camera.quaternion.set( q._x, q._y, q._z, q._w );
+
+                    that.mv.render();
+                }
+
+            });
+
             mv.render();
         },
 

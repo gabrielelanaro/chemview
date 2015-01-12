@@ -112,7 +112,8 @@ THREE.ArcballControls = function ( object, domElement ) {
 	var lastPosition = new THREE.Vector3();
 	var lastQuaternion = new THREE.Quaternion();
 
-
+	this.lastPosition = lastPosition;
+	this.lastQuaternion = lastQuaternion;
 
 
 	var STATE = { NONE : -1, ROTATE : 0, DOLLY : 1, PAN : 2, TOUCH_ROTATE : 3, TOUCH_DOLLY : 4, TOUCH_PAN : 5 };

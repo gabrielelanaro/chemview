@@ -7,7 +7,8 @@ import numpy as np
 from IPython.display import display, Javascript, Image
 from IPython.html.widgets import DOMWidget
 from IPython.utils.traitlets import (Unicode, Bool, Bytes, CInt, Any,
-                                     Dict, Enum, CFloat, List)
+                                     Dict, Enum, CFloat, List, Tuple, CUnicode,
+                                     CBool)
 
 from .utils import encode_numpy
 
@@ -24,6 +25,10 @@ class RepresentationViewer(DOMWidget):
 
     width = CInt(sync=True)
     height = CInt(sync=True)
+
+    # Update Camera Hack
+    camera_str = CUnicode(sync=True)
+    static_moving = CBool(sync=True)
 
     def __init__(self, width=500, height=500):
         '''RepresentationViewer is an IPython notebook widget useful to display 3d scenes through webgl.
