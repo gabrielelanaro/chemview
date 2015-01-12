@@ -441,26 +441,37 @@ LineRepresentation.deserialize = function (json) {
 /**
   *  SurfaceRepresentation displays a surface
   */
-var SurfaceRepresentation = function (verts, faces, style) {
+var SurfaceRepresentation = function (verts, faces, style, color) {
     // Initialize stuff for serialization
     this.type = "surface";
     this.options = { verts: verts,
                      faces: faces,
-                     style: style
+                     style: style,
+                     color: color,
                     };
 
 
     var DEFAULT_STYLE = "wireframe";
+    var DEFAULT_COLOR = 0Xffffff;
+
     var style = style != undefined ? style : DEFAULT_STYLE;
+    var color = color != undefined ? color : DEFAULT_COLOR;
 
     if (style == "solid") {
-        var material = new THREE.MeshPhongMaterial( { color: 0Xffffff, 
-                                                      specular: 0xffffff, 
-                                                      shininess: 1});
+        var material = new THREE.MeshPhongMaterial( { color : color, 
+                                                      specular : 0xffffff, 
+                                                      shininess : 1 } );
     }
 
     if (style == "wireframe") {
-        var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff});
+        var material = new THREE.MeshBasicMaterial( { wireframe : true, color: color } );
+    }
+
+    if (style == "transparent") {
+        var material = new THREE.MeshBasicMaterial( { color: color, 
+                                                      transparent: true,
+                                                      opacity: 0.5,
+                                                      blending: THREE.AdditiveBlending } )
     }
 
 	var geometry = new THREE.Geometry();

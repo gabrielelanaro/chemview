@@ -154,7 +154,11 @@ class MolecularViewer(RepresentationViewer):
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
 
-    def add_surface(self, function, resolution=32, isolevel=0.3):
+    def add_surface(self, function, isolevel=0.3, resolution=32, style="wireframe", color=0xffffff):
+
+        avail_styles = ['wireframe', 'solid', 'transparent']
+        if style not in avail_styles:
+            raise ValueError('style must be in ' + str(avail_styles))
 
         # We want to make a container that contains the whole molecule
         # and surface
@@ -166,9 +170,14 @@ class MolecularViewer(RepresentationViewer):
         z = np.linspace(area_min[2], area_max[2], resolution)
       
         xv, yv, zv = np.meshgrid(x, y, z)
-        spacing = tuple((area_max - area_min)/resolution)
-        triangles = marching_cubes(function(xv, yv, zv), isolevel)
-      
+        spacing = np.array((area_max - area_min)/resolution)
+
+        if isolevel >= 0:
+            triangles = marching_cubes(function(xv, yv, zv), isolevel)
+        else: # Wrong traingle unwinding roder -- god only knows why
+            triangles = marching_cubes(-function(xv, yv, zv), -isolevel)
+
+
         if len(triangles) == 0:
             ## NO surface
             return
@@ -180,7 +189,9 @@ class MolecularViewer(RepresentationViewer):
            verts.extend(t)
   
         faces = np.array(faces)
-        verts = area_min + np.array(verts)*spacing
+        verts = area_min + spacing/2 + np.array(verts)*spacing
         rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
-                                                     'faces': faces.astype('int32')})
+                                                     'faces': faces.astype('int32'),
+                                                     'style': style,
+                                                     'color': color})
 

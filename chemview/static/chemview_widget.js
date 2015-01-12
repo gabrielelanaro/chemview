@@ -185,7 +185,7 @@ function($, WidgetManager) {
                 this.mv.addRepresentation(rep, repId);
 
             } else if (type == 'surface') {
-                var rep = new SurfaceRepresentation(options.verts, options.faces, options.style);
+                var rep = new SurfaceRepresentation(options.verts, options.faces, options.style, options.color);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'spheres') {
                 var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
