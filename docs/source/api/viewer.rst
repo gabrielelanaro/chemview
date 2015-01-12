@@ -31,3 +31,7 @@
     
         Display the protein secondary structure as a white, 
         solid tube and the alpha-helices as yellow cylinders.
+    
+    .. py:method:: add_surface(self, function, resolution=32, isolevel=0.3)
+    
+    

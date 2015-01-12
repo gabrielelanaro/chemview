@@ -181,3 +181,9 @@ pseudoxml:
 copyjs:
 	cp ../chemview/static/*.js source/_static/js
  
+apigen:
+	python emit_rst.py ../chemview/widget.py > source/api/widget.rst
+	python emit_rst.py ../chemview/viewer.py > source/api/viewer.rst
+	python emit_rst.py ../chemview/trajectory.py > source/api/trajectory.rst
+	python emit_rst.py ../chemview/utils.py > source/api/utils.rst
+	python emit_rst.py ../chemview/marchingcubes.py > source/api/marchingcubes.rst

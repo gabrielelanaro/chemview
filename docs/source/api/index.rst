@@ -2,8 +2,25 @@
 API Reference
 =============
 
-Module ``chemview.widget``
---------------------------
 
-This module contains the IPython notebook enabled widgets.
+Module ``chemview.widget``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: widget.rst
+
+Module ``chemview.viewer``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: viewer.rst
+
+
+Module ``chemview.trajectory``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: trajectory.rst
+
+Module ``chemview.utils``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: utils.rst
 

@@ -33,14 +33,32 @@ class RepresentationViewer(DOMWidget):
     def __init__(self, width=500, height=500):
         '''RepresentationViewer is an IPython notebook widget useful to display 3d scenes through webgl.
 
-        Example
-        -------
+        Example:
+
+        .. code::
 
             from IPython.display import display
 
             rv = RepresentationViewer()
             rv.add_representation('point', {'coordinates': coordinates, 'colors': colors, 'sizes': sizes})
             display(rv)
+
+        .. py:attribute: width
+
+            Width in pixels of the IPython widget
+
+        .. py:attribute: height
+
+            Height in pixels of the IPython widget
+
+        .. py:attribute: camera_str
+
+            A string-representation of camera position and orientation
+
+        .. py:attribute: static_moving
+
+            Set to True to make the camera lose the "bouncy" rotation.
+
 
         '''
         super(RepresentationViewer, self).__init__()
@@ -151,12 +169,47 @@ class RepresentationViewer(DOMWidget):
 
 class TrajectoryControls(DOMWidget):
     _view_name = Unicode('TrajectoryControls', sync=True)
+
     frame = CInt(sync=True)
     n_frames = CInt(sync=True)
     fps = CInt(sync=True)
     
-    def __init__(self, n_frames):
-        '''Play/Pause controls useful for playing trajectories.'''
+    def __init__(self, n_frames, fps=30):
+        '''Play/Pause controls useful for playing trajectories.
+
+        Example:
+
+        You can connect a callback to be executed every time the frame changes.
+
+        .. code::
+
+            from IPython.display import display
+
+            controls = TrajectoryControls(10) # 10 frames
+            
+            def callback(frame):
+                print("Current frame %d" % frame)
+
+            controls.on_frame_change(callback)
+            display(controls)
+
+        .. py:attribute:: frame
+
+            Current frame
+
+        .. py:attribute:: n_frames
+
+            Total number of frames
+
+        .. py:attribute:: fps
+
+            Frames per second (defaults to 30)
+
+        '''
         super(TrajectoryControls, self).__init__()
         self.n_frames = n_frames - 1
-        self.fps = 30
+        self.fps = fps
+
+    def on_frame_change(self, callback):
+        '''Connect a callback to be executed every time the frame attribute changes.'''
+        self.on_trait_change(lambda name, old, new: callback(new), "frame")
