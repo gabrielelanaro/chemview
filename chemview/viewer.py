@@ -19,7 +19,7 @@ class MolecularViewer(RepresentationViewer):
         '''
         super(MolecularViewer, self).__init__(width, height)
         self.update_callbacks = []
-        self.coordinates = coordinates
+        self.coordinates = coordinates.astype('float32')
         self.topology = topology
 
 
@@ -32,12 +32,12 @@ class MolecularViewer(RepresentationViewer):
         colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
         sizes = [size] * len(self.topology['atom_types'])
 
-        points = self.add_representation('points', {'coordinates': self.coordinates,
+        points = self.add_representation('points', {'coordinates': self.coordinates.astype('float32'),
                                                     'colors': colorlist,
                                                     'sizes': sizes})
         # Update closure
         def update(self=self, points=points):
-            self.update_representation(points, {'coordinates': self.coordinates})
+            self.update_representation(points, {'coordinates': self.coordinates.astype('float32')})
         self.update_callbacks.append(update)
 
     def lines(self):
