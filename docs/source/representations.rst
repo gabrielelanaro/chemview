@@ -76,13 +76,13 @@ Once you create your molecular viewer, you can display the molecule in a variety
 
           .. image:: _static/images/lines.png
 
-- ball_and_stick: the classical ball and stick representation. Atom are spheres, bonds are cylinders. At the moment this representation is not suitable for very large molecules and animations.
+- ball_and_sticks: the classical ball and stick representation. Atom are spheres, bonds are cylinders. At the moment this representation is not suitable for very large molecules and animations.
 
           Example:
 
           .. code:: python
 
-            mv.ball_and_stick()
+            mv.ball_and_sticks()
 
           .. image:: _static/images/ball_and_stick.png
 
