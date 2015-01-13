@@ -76,6 +76,16 @@ Once you create your molecular viewer, you can display the molecule in a variety
 
           .. image:: _static/images/lines.png
 
+- ball_and_stick: the classical ball and stick representation. Atom are spheres, bonds are cylinders. At the moment this representation is not suitable for very large molecules and animations.
+
+          Example:
+
+          .. code:: python
+
+            mv.ball_and_stick()
+
+          .. image:: _static/images/ball_and_stick.png
+
 - line_ribbon: the protein backbone is represented by a smooth line.
 
           Example:
@@ -96,6 +106,7 @@ Once you create your molecular viewer, you can display the molecule in a variety
 
           .. image:: _static/images/cylinder_and_strand.png
 
+.. seealso:: The :class:`MolecularViewer` documentation at api/index
 
 Viewing Molecules with Chemlab
 -------------------------------

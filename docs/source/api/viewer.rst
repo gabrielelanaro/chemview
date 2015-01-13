@@ -22,6 +22,11 @@
     
         Display atoms as points of size *pointsize* and bonds as lines.
     
+    .. py:method:: ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02)
+    
+        Display the system using a ball and stick representation.
+                
+    
     .. py:method:: line_ribbon(self)
     
         Display the protein secondary structure as a white lines that passes through the 
@@ -32,6 +37,6 @@
         Display the protein secondary structure as a white, 
         solid tube and the alpha-helices as yellow cylinders.
     
-    .. py:method:: add_surface(self, function, resolution=32, isolevel=0.3)
+    .. py:method:: add_surface(self, function, isolevel=0.3, resolution=32, style='wireframe', color=16777215)
     
     

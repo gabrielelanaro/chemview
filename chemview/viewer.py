@@ -36,7 +36,7 @@ class MolecularViewer(RepresentationViewer):
 
         points = self.add_representation('points', {'coordinates': self.coordinates.astype('float32'),
                                                     'colors': colorlist,
-                                                    'sizes': sizes})
+                                                    'sizes': sizes })
         # Update closure
         def update(self=self, points=points):
             self.update_representation(points, {'coordinates': self.coordinates.astype('float32')})
@@ -65,13 +65,46 @@ class MolecularViewer(RepresentationViewer):
             bond_end = np.array(bond_end)
             
             self.update_representation(lines, {'startCoords': self.coordinates[bond_start],
-                                                'endCoords': self.coordinates[bond_end]})
+                                                 'endCoords': self.coordinates[bond_end]})
         self.update_callbacks.append(update)
 
     def wireframe(self, pointsize=1.0):
         '''Display atoms as points of size *pointsize* and bonds as lines.'''
         self.points(pointsize)
         self.lines()
+
+    def ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02):
+        """Display the system using a ball and stick representation.
+        """
+        
+        # Add the spheres
+        
+        colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
+        sizes = [ball_radius] * len(self.topology['atom_types'])
+
+        spheres = self.add_representation('spheres', {'coordinates': self.coordinates.astype('float32'),
+                                                      'colors': colorlist,
+                                                      'radii': sizes})
+
+        def update(self=self, spheres=spheres):
+            self.update_representation(spheres, {'coordinates': self.coordinates.astype('float32')})
+
+        self.update_callbacks.append(update) 
+
+        # Add the cylinders
+        
+        if 'bonds' in self.topology:
+            start_idx, end_idx = zip(*self.topology['bonds'])
+            cylinders = self.add_representation('cylinders', {'startCoords': self.coordinates[list(start_idx)],
+                                                  'endCoords': self.coordinates[list(end_idx)],
+                                                  'colors': [0xcccccc] * len(self.coordinates),
+                                                  'radii': [stick_radius] * len(self.coordinates)})
+            # Update closure
+            def update(self=self, rep=cylinders, start_idx=start_idx, end_idx=end_idx):
+                self.update_representation(rep, {'startCoords': self.coordinates[list(start_idx)],
+                                                 'endCoords': self.coordinates[list(end_idx)]})
+
+            self.update_callbacks.append(update)        
 
     def line_ribbon(self):
         '''Display the protein secondary structure as a white lines that passes through the 
