@@ -1,10 +1,10 @@
 package:
   name: chemview
-  version: !!str 0.1.2
+  version: !!str 0.1
 
 source:
   git_url: git@github.com:gabrielelanaro/chemview.git
-#  git_tag: v0.1.1
+  git_tag: v0.1
 
 requirements:
   build:

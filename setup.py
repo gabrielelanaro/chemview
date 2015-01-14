@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='chemview',
-      version='0.1.2',
+      version='0.1',
       description='Interactive molecular viewer for IPython notebook',
       author='Gabriele Lanaro',
       author_email='gabriele.lanaro@gmail.com',
