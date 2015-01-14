@@ -17,11 +17,11 @@ To install chemview using conda you can first create an environment (optional):
     $ conda create -p /path/to/new/environment python
     $ source activate /path/to/new/environment
 
-next, you can either install chemview from the binstar channel.
+then, you can install chemview directly from the binstar channel.
 
     $ conda install -c http://conda.binstar.org/gabrielelanaro
 
-or by installing dependencies
+or, for the development version you can manually install the dependencies:
 
     $ conda install ipython-notebook
     $ conda install numpy
@@ -30,26 +30,16 @@ or by installing dependencies
     $ cd chemview
     $ pip install .
 
-chemlab requires a few basic dependencies to be installed:
+It is also possible to install chemview using pip:
 
-It is also possible to install using pip. 
-
-We need to first install the dependencies:
-
-- numpy
-- ipython 2.x (development version 0.3 breaks the widget API)
-- numba
-
-And then install using the following commands:
-
-    pip install ipython[notebook]
+    pip install ipython[notebook] # ipython 2.x (development version 0.3 breaks the widget API)
     pip install numpy
     pip install numba
-    # Download chemview
+
+    # Download and install chemview
     git clone https://github.com/gabrielelanaro/chemview
     cd chemview
     pip install .
-
 
 ## Ready to go!
 
@@ -57,4 +47,5 @@ At this point you are ready to go!
 
     $ ipython notebook
 
-You can try chemview on the test notebooks in this distribution. 
+You can try chemview on the test notebooks present in this distribution or head to the documentation 
+http://chemview.readthedocs.org 

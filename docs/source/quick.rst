@@ -2,20 +2,46 @@
 Installation and Quick Start
 ============================
 
-Installing chemview is extremely easy.
+Installing chemview with conda is fairly easy. First download anaconda (or miniconda):
 
-Installation with pip
----------------------
+http://continuum.io/downloads
 
-Open a terminal or command line and install using pip.
+To install chemview using conda you can first create an environment (optional):
 
 .. code-block:: bash
 
-    # Dependencies
-    pip install ipython[notebook] # Any 2.x version is fine
+    $ conda create -p /path/to/new/environment python
+    $ source activate /path/to/new/environment
+
+then, you can install chemview directly from the binstar channel.
+
+.. code-block:: bash
+
+    $ conda install -c http://conda.binstar.org/gabrielelanaro
+
+or, for the development version you can manually install the dependencies:
+
+.. code-block:: bash
+
+    $ conda install ipython-notebook
+    $ conda install numpy
+    $ conda install numba
+    $ git clone https://github.com/gabrielelanaro/chemview
+    $ cd chemview
+    $ pip install .
+
+It is also possible to install chemview using pip:
+
+.. code-block:: bash
+
+    pip install ipython[notebook] # ipython 2.x (development version 0.3 breaks the widget API)
     pip install numpy
-    # Latest chemview
-    pip install git+git://github.com/gabrielelanaro/chemview
+    pip install numba
+
+    # Download and install chemview
+    git clone https://github.com/gabrielelanaro/chemview
+    cd chemview
+    pip install .
 
 Quick Start
 -----------
