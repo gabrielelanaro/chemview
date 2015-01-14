@@ -24,7 +24,7 @@ var MolecularViewer = function ($el) {
 	};
 
 	this.camera_z = -150;
-	this.perspectiveCamera = new THREE.PerspectiveCamera(20, this.container.whratio, 1, 800);
+	this.perspectiveCamera = new THREE.PerspectiveCamera(20, this.container.whratio, 0.1, 800);
 	this.perspectiveCamera.position.set(0, 0, this.camera_z);
 	this.perspectiveCamera.lookAt(new THREE.Vector3(0, 0, 0));
 	this.orthographicCamera = new THREE.OrthographicCamera();

@@ -209,8 +209,8 @@ class MolecularViewer(RepresentationViewer):
 
         # We want to make a container that contains the whole molecule
         # and surface
-        area_min = self.coordinates.min(axis=0) - 0.5
-        area_max = self.coordinates.max(axis=0) + 0.5
+        area_min = self.coordinates.min(axis=0) - 0.2
+        area_max = self.coordinates.max(axis=0) + 0.2
 
         x = np.linspace(area_min[0], area_max[0], resolution)
         y = np.linspace(area_min[1], area_max[1], resolution)
