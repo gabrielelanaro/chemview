@@ -6,21 +6,21 @@ API Reference
 Module ``chemview.widget``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: widget.rst
+.. include:: widget.rst.in
 
 Module ``chemview.viewer``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: viewer.rst
+.. include:: viewer.rst.in
 
 
 Module ``chemview.trajectory``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: trajectory.rst
+.. include:: trajectory.rst.in
 
 Module ``chemview.utils``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: utils.rst
+.. include:: utils.rst.in
 

@@ -18,7 +18,7 @@ class TrajectoryViewer(MolecularViewer):
         :param list coordinate_frames: A list containing the positions of the atoms (as np.ndarray) for each frame.
         :param dict topology: A dictionary specifying the topology 
 
-        ..seealso:: :class:`chemview.MolecularViewer`
+        .. seealso:: :class:`MolecularViewer`
 
         '''
         self.coordinate_frames = coordinate_frames

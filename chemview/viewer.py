@@ -68,7 +68,7 @@ class MolecularViewer(RepresentationViewer):
                                                  'endCoords': self.coordinates[bond_end]})
         self.update_callbacks.append(update)
 
-    def wireframe(self, pointsize=1.0):
+    def wireframe(self, pointsize=0.2):
         '''Display atoms as points of size *pointsize* and bonds as lines.'''
         self.points(pointsize)
         self.lines()
@@ -187,7 +187,21 @@ class MolecularViewer(RepresentationViewer):
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
 
-    def add_surface(self, function, isolevel=0.3, resolution=32, style="wireframe", color=0xffffff):
+    def add_isosurface(self, function, isolevel=0.3, resolution=32, style="wireframe", color=0xffffff):
+        '''Add an isosurface to the current scene.
+
+        :param callable function: A function that takes x, y, z coordinates as input and is broadcastable using numpy. Typically simple 
+                                  functions that involve standard arithmetic operations and functions 
+                                  such as ``x**2 + y**2 + z**2`` or ``np.exp(x**2 + y**2 + z**2)`` will work. If not sure, you can first
+                                  pass the function through ``numpy.vectorize``.\
+
+                                  Example: ``mv.add_isosurface(np.vectorize(f))``
+        :param float isolevel: The value for which the function should be constant.
+        :param int resolution: The number of grid point to use for the surface. An high value will give better quality but lower performance.
+        :param str style: The surface style, choose between ``solid``, ``wireframe`` and ``transparent``.
+        :param int color: The color given as an hexadecimal integer. Example: ``0xffffff`` is white.
+
+        '''
 
         avail_styles = ['wireframe', 'solid', 'transparent']
         if style not in avail_styles:

@@ -76,6 +76,7 @@ Once you create your molecular viewer, you can display the molecule in a variety
 
           .. image:: _static/images/lines.png
 
+
 - ball_and_sticks: the classical ball and stick representation. Atom are spheres, bonds are cylinders. At the moment this representation is not suitable for very large molecules and animations.
 
           Example:
@@ -108,6 +109,19 @@ Once you create your molecular viewer, you can display the molecule in a variety
 
 .. seealso:: The :class:`MolecularViewer` documentation at api/index
 
+You can also add isosurfaces with the command :py:meth:`MolecularViewer.add_isosurface` that takes a function and an isovalue. Given a function :math:`f(x, y, z)`, an isosurface is the set of points for which the function assumes a certain value. For example if you want to plot the surface of sphere with radius 1, we can select a function of the type:
+
+.. math::
+    f(x, y, z) = x^2 + y^2 + z^2
+
+and set the isovalue would be 1, so that we obtain the surface whose set of points that satisfy the equation of a sphere:
+
+.. math::
+    x^2 + y^2 + z^2 = 1
+
+
+.. seealso:: :ref:`plotting_molecular_orbitals`
+
 Viewing Molecules with Chemlab
 -------------------------------
 
@@ -137,7 +151,7 @@ To create a RepresentationViewer instance, type:
     rv
 
 This will display an empty viewer. To add objects, we can use the method
-:py:method:`RepresentationViewer.add_representation`. The method takes two
+:py:meth:`RepresentationViewer.add_representation`. The method takes two
 parameters: the **name** of the representation to display, and a dictionary of
 **options**, that are specific for each representation.
 

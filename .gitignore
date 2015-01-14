@@ -55,4 +55,4 @@ target/
 
 # IPython notebook
 
-.ipynb_checkpoints/
+*.ipynb_checkpoints/

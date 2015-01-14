@@ -39,3 +39,9 @@ web using the chemlab_ API, then we create two molecular viewers and we link the
     display(mv2)
 
 .. _chemlab: http://chemlab.readthedocs.org
+
+.. _plotting_molecular_orbitals: 
+
+Plotting molecular orbitals
+---------------------------
+

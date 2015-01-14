@@ -18,7 +18,7 @@
         
                 
     
-    .. py:method:: wireframe(self, pointsize=1.0)
+    .. py:method:: wireframe(self, pointsize=0.2)
     
         Display atoms as points of size *pointsize* and bonds as lines.
     
@@ -37,6 +37,16 @@
         Display the protein secondary structure as a white, 
         solid tube and the alpha-helices as yellow cylinders.
     
-    .. py:method:: add_surface(self, function, isolevel=0.3, resolution=32, style='wireframe', color=16777215)
+    .. py:method:: add_isosurface(self, function, isolevel=0.3, resolution=32, style='wireframe', color=16777215)
     
-    
+        Add an isosurface to the current scene.
+        
+        :param callable function: A function that takes x, y, z coordinates as input and is broadcastable using numpy. Typically simple 
+                                  functions that involve standard arithmetic operations and functions 
+                                  such as ``x**2 + y**2 + z**2`` or ``np.exp(x**2 + y**2 + z**2)`` will work. If not sure, you can first
+                                  pass the function through ``numpy.vectorize``.
+                                  Example: ``mv.add_isosurface(np.vectorize(f))``
+        :param float isolevel: The value for which the function should be constant.
+        :param int resolution: The number of grid point to use for the surface. An high value will give better quality but lower performance.
+        :param str style: The surface style, choose between ``solid``, ``wireframe`` and ``transparent``.
+        :param int color: The color given as an hexadecimal integer. Example: ``0xffffff`` is white.
