@@ -143,7 +143,7 @@ class RepresentationViewer(DOMWidget):
 
     def _recursive_serialize(self, dictionary):
         '''Serialize a dictionary inplace'''
-        for k, v in dictionary.iteritems():
+        for k, v in dictionary.items():
             if isinstance(v, dict):
                 self._recursive_serialize(v)
             else:
