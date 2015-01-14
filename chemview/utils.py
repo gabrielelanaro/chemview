@@ -13,7 +13,7 @@ def encode_numpy(array):
                 - *shape*: the array shape
 
     '''
-    return {'data' : base64.b64encode(array.data),
+    return {'data' : base64.b64encode(array.data).decode('utf8'),
             'type' : array.dtype.name,
             'shape': array.shape}
 
