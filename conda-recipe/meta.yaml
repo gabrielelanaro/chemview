@@ -3,7 +3,7 @@ package:
   version: !!str 0.1
 
 source:
-  git_url: git@github.com:gabrielelanaro/chemview.git
+  git_url: https://github.com/gabrielelanaro/chemview.git
   git_tag: v0.1
 
 requirements:
