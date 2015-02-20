@@ -6,9 +6,9 @@ try:
     numba_present = True
 except ImportError:
     import warnings
-    warnings.warn(ImportWarning,
-    "Numba not installed. The isosurface generation will be extremely slow")
-
+    warnings.warn(
+        "Numba not installed. The isosurface generation will be extremely slow",
+        ImportWarning)
     numba_present = False
 
 def marching_cubes(field, isolevel):
