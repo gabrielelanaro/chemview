@@ -1,10 +1,18 @@
 # A marching cube test
 import numpy as np
-import numba as nb
 
-@nb.jit('pyobject(f4[:, :, :], f4)')
+try:
+    import numba as nb
+    numba_present = True
+except ImportError:
+    import warnings
+    warnings.warn(ImportWarning,
+    "Numba not installed. The isosurface generation will be extremely slow")
+
+    numba_present = False
+
 def marching_cubes(field, isolevel):
-    # The field is like gridpoints, and gridpoints define cubes. 
+    # The field is like gridpoints, and gridpoints define cubes.
     triangles = []
     # Here we determine the value for each field
     for i in range(field.shape[0] - 1):
@@ -54,9 +62,14 @@ def marching_cubes(field, isolevel):
     triangles_[:, :, [0, 1]] = triangles_[:, :, [1, 0]]
     return triangles_
 
-@nb.jit
+
+
 def interpolate_edge_coordinates(point1, value1, point2, value2, isolevel):
     return point1 + (isolevel - value1) * (point2 - point1)/(value2 - value1)
+
+if numba_present:
+    marching_cubes = nb.jit('pyobject(f4[:, :, :], f4)')(marching_cubes)
+    interpolate_edge_coordinates = np.jit(interpolate_edge_coordinates)
 
 # Returns the vertices that make up an edge
 edge2pts = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),
@@ -256,7 +269,7 @@ tris_as_edges = [
     [(1, 3, 6), (1, 6, 10), (3, 8, 6), (5, 6, 9), (8, 9, 6)],
     [(10, 1, 0), (10, 0, 6), (9, 5, 0), (5, 6, 0)],
     [(0, 3, 8), (5, 6, 10)],
-    [(5, 6, 10)], 
+    [(5, 6, 10)],
     [(11, 5, 10), (7, 5, 11)],
     [(11, 5, 10), (11, 7, 5), (8, 3, 0)],
     [(5, 11, 7), (5, 10, 11), (1, 9, 0)],
