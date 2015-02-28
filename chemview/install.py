@@ -66,7 +66,7 @@ def enable_notebook(verbose=0):
     install_nbextension(fns, verbose=verbose, overwrite=True)
     display(_REQUIRE_CONFIG)
 
-    widgets = ['chemview_widget.js', 'trajectory_controls_widget.js']
+    widgets = ['chemview_widget.js', 'trajectory_controls_widget.js', 'floatrange_widget.js']
     for fn in widgets:
         fn = resource_filename('chemview', os.path.join('static', fn))
         display(Javascript(filename=fn))

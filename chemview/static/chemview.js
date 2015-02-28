@@ -45,11 +45,16 @@ var MolecularViewer = function ($el) {
 	this.scene = new THREE.Scene();
 	this.scene.fog = new THREE.FogExp2(background);
 
-	var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
-	directionalLight.position.set(0.2, 0.2, -1).normalize();
+	var directionalLight1 = new THREE.DirectionalLight(0xFFFFFF, 1.2);
+	directionalLight1.position.set(0.2, 0.2, -1).normalize();
+
+    var directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1.2);
+    directionalLight2.position.set(0.2, 0.2, 1).normalize();
+
 	var ambientLight = new THREE.AmbientLight(0x202020);
 	
-	this.scene.add(directionalLight);
+	this.scene.add(directionalLight1);
+    this.scene.add(directionalLight2);
 	this.scene.add(ambientLight);
 	//this.scene.add(this.camera);
 

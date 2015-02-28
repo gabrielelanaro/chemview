@@ -28,7 +28,7 @@ function($, WidgetManager) {
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
 
-            var container = $('<div/>').height(HEIGHT).width(WIDTH) 
+            var container = $('<div/>').height(HEIGHT).width(WIDTH)
                 .resizable({
                     aspectRatio: false,
                     resize: function(event, ui) {
@@ -66,13 +66,28 @@ function($, WidgetManager) {
                 that.mv.controls.staticMoving = this.model.get('static_moving');
             }
                 );
-            mv.controls.addEventListener( 'change' , 
+
+            // Save camera info
+            that.model.set(
+                {'camera_str': JSON.stringify(
+                    { cid : that.cid,
+                      position : that.mv.camera.position,
+                      quaternion : that.mv.camera.quaternion,
+                      aspect : that.mv.camera.aspect,
+                      fov: that.mv.camera.fov,
+                      target: that.mv.controls.target })
+                });
+
+            mv.controls.addEventListener( 'change' ,
                                             function () {
                                                 that.model.set(
                                                     {'camera_str': JSON.stringify(
                                                         { cid : that.cid,
                                                           position : that.mv.camera.position,
-                                                          quaternion : that.mv.camera.quaternion })
+                                                          quaternion : that.mv.camera.quaternion,
+                                                          aspect : that.mv.camera.aspect,
+                                                          fov: that.mv.camera.fov,
+                                                          target: that.mv.controls.target  })
                                                     });
 
                                                 that.touch();
@@ -83,7 +98,7 @@ function($, WidgetManager) {
             // We listen for changes in the camera
             this.model.on("change:camera_str", function (context) {
                 var camera_spec = JSON.parse(that.model.get('camera_str'));
-                
+
                 // This function is only for external updates to the camera.
                 // Avoid updating yourself in an infinite loop
                 if (camera_spec.cid != that.cid) {
@@ -164,7 +179,7 @@ function($, WidgetManager) {
             var type = args.type,
                 repId = args.repId,
                 options = args.options;
-            // Pre-process the options to convert numpy arrays or 
+            // Pre-process the options to convert numpy arrays or
             // other data structures
             var that = this;
             _.each(options, function(value, key) {
@@ -186,6 +201,7 @@ function($, WidgetManager) {
 
             } else if (type == 'surface') {
                 var rep = new SurfaceRepresentation(options.verts, options.faces, options.style, options.color);
+                this.mv.zoomInto(options.verts);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'spheres') {
                 var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
@@ -211,7 +227,7 @@ function($, WidgetManager) {
             }
 
             this.mv.controls.handleResize();
-            this.mv.render();      
+            this.mv.render();
         },
 
         updateRepresentation : function (args) {
@@ -265,7 +281,7 @@ function($, WidgetManager) {
             context.attach('canvas', menu);
 
         },
-        
+
         _handle_export: function(){
             // Handles when the displayimage menu is clicked
             var dataURL = this.mv.renderer.domElement.toDataURL('image/png');
