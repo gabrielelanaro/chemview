@@ -224,7 +224,6 @@ class MolecularViewer(RepresentationViewer):
         else: # Wrong traingle unwinding roder -- god only knows why
             triangles = marching_cubes(-function(xv, yv, zv), -isolevel)
 
-
         if len(triangles) == 0:
             ## NO surface
             return

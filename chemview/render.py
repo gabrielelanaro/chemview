@@ -17,11 +17,11 @@ except ImportError:
 
 __all__ = ['render_povray']
 
-def render_povray(viewer, filename='ipython', width=600, height=600,
+def render_povray(scene, filename='ipython', width=600, height=600,
                   antialiasing=0.01):
     '''Render the scene with povray for publication.
 
-    :param RepresentationViewer viewer: The widget to render
+    :param dict scene: The scene to render
     :param string filename: Output filename or 'ipython' to render in the notebook.
     :param int width: Width in pixels.
     :param int height: Height in pixels.
@@ -29,8 +29,6 @@ def render_povray(viewer, filename='ipython', width=600, height=600,
     if not vapory_available:
         raise Exception("To render with povray, you need to have the vapory"
                         " package installed.")
-
-    scene = viewer.get_scene()
 
     # Camera target
     aspect = scene['camera']['aspect']
@@ -46,7 +44,9 @@ def render_povray(viewer, filename='ipython', width=600, height=600,
 
     # Lights
     light_sources = [vp.LightSource( np.array([2,4,-3]) * 1000, 'color', [1,1,1] ),
-                     vp.LightSource( np.array([-1,2,3]) * 1000, 'color', [1,1,1] )]
+                     vp.LightSource( np.array([-2,-4,3]) * 1000, 'color', [1,1,1] ),
+                     vp.LightSource( np.array([-1,2,3]) * 1000, 'color', [1,1,1] ),
+                     vp.LightSource( np.array([1,-2,-3]) * 1000, 'color', [1,1,1] )]
 
     # Background -- white for now
     background = vp.Background([1, 1, 1])
@@ -73,10 +73,12 @@ def _generate_objects(representations):
 
         elif rep['type'] == 'points':
             # Render points as small spheres
-            for (x, y, z), c in zip(rep['options']['coordinates'],
-                                    rep['options']['colors']):
+            for (x, y, z), c, s in zip(rep['options']['coordinates'],
+                                    rep['options']['colors'],
+                                    rep['options']['sizes']):
                 # Point = sphere with a small radius
-                sphere = vp.Sphere( [x,y,z] , 0.02, vp.Texture( vp.Pigment( 'color', hex2rgb(c)) ))
+                sphere = vp.Sphere( [x,y,z] , s * 0.15,
+                                    vp.Texture( vp.Pigment( 'color', hex2rgb(c)) ))
                 objects.append(sphere)
 
         elif rep['type'] == 'surface':
