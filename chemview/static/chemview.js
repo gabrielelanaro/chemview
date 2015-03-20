@@ -1,5 +1,3 @@
-
-
 var MolecularViewer = function ($el) {
 	/* A MolecularViewer displays and manages a set of representations for a chemical system.
 
@@ -52,7 +50,7 @@ var MolecularViewer = function ($el) {
     directionalLight2.position.set(0.2, 0.2, 1).normalize();
 
 	var ambientLight = new THREE.AmbientLight(0x202020);
-	
+
 	this.scene.add(directionalLight1);
     this.scene.add(directionalLight2);
 	this.scene.add(ambientLight);
@@ -76,7 +74,7 @@ var MolecularViewer = function ($el) {
 };
 
 MolecularViewer.prototype = {
-    
+
     addRepresentation: function (representation, repId) {
     	representation.addToScene(this.scene);
         this.representations[repId] = representation;
@@ -134,7 +132,7 @@ MolecularViewer.prototype = {
 
 		var fov_topbottom = this.camera.fov*Math.PI/180.0;
 		var dist = (bound + this.camera.near)/Math.tan(fov_topbottom * 0.5);
-        
+
         // Calculate distance vector
         var c = new THREE.Vector3();
         c.subVectors(this.camera.position, this.controls.target);
@@ -155,7 +153,7 @@ MolecularViewer.prototype = {
         for (var key in this.representations) {
             if ( this.representations[key].onResize != undefined ) {
                 this.representations[key].onResize(width, height);
-            } 
+            }
         }
 
         this.render();
@@ -208,9 +206,9 @@ MolecularViewer.prototype = {
 
 
 
-/** 
+/**
  * Flat points in space
- * 
+ *
  * :param Float32Aarray coordinates: a (flattened) array of coordinates
  * :param list colors: a list of colors (one for each point) expressed as hexadecimal numbers
  * :param list sizes: a list of sizes for the points
@@ -218,7 +216,7 @@ MolecularViewer.prototype = {
 var PointsRepresentation = function (coordinates, colors, sizes) {
     // Initialize stuff for serialization
     this.type = "points";
-    this.options = {'coordinates': coordinates, 
+    this.options = {'coordinates': coordinates,
                     'colors': colors,
                     'sizes': sizes};
 
@@ -261,7 +259,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
         attributes.color.value.push(new THREE.Color(colors[p]));
     }
 
-    
+
     var vertex_shader = "\
         uniform float scale;\
         attribute vec3 color;\
@@ -299,7 +297,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
     // This is a parameter we need to scale things properly
     // https://github.com/mrdoob/three.js/blob/2d59713328c421c3edfc3feda1b116af13140b94/src/renderers/WebGLRenderer.js
-    // uniforms.scale.value = _canvas.height / 2.0; 
+    // uniforms.scale.value = _canvas.height / 2.0;
 
 
     this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
@@ -320,7 +318,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
         if (options.sizes != undefined) {
             this.particleSystem.material.attributes.pointSize.value = options.sizes;
-            this.particleSystem.material.attributes.pointSize.needsUpdate = true;  
+            this.particleSystem.material.attributes.pointSize.needsUpdate = true;
         }
 
     };
@@ -384,7 +382,7 @@ var LineRepresentation = function (startCoords, endCoords, startColors, endColor
                                             endCoords[3*i + 2]));
         geo.colors.push(new THREE.Color(endColors[i]));
     }
-    
+
     var material = new THREE.LineBasicMaterial({
             color: 0xffffff,
             vertexColors: THREE.VertexColors,
@@ -463,8 +461,8 @@ var SurfaceRepresentation = function (verts, faces, style, color) {
     var color = color != undefined ? color : DEFAULT_COLOR;
 
     if (style == "solid") {
-        var material = new THREE.MeshPhongMaterial( { color : color, 
-                                                      specular : 0xffffff, 
+        var material = new THREE.MeshPhongMaterial( { color : color,
+                                                      specular : 0xffffff,
                                                       shininess : 1 } );
     }
 
@@ -473,7 +471,7 @@ var SurfaceRepresentation = function (verts, faces, style, color) {
     }
 
     if (style == "transparent") {
-        var material = new THREE.MeshBasicMaterial( { color: color, 
+        var material = new THREE.MeshBasicMaterial( { color: color,
                                                       transparent: true,
                                                       opacity: 0.5,
                                                       blending: THREE.AdditiveBlending } )
@@ -483,13 +481,13 @@ var SurfaceRepresentation = function (verts, faces, style, color) {
 
 	for (var i = 0; i < verts.length/3; i++) {
 		geometry.vertices.push(new THREE.Vector3(verts[i * 3 + 0],
-												 verts[i * 3 + 1], 
+												 verts[i * 3 + 1],
 												 verts[i * 3 + 2]));
 	}
 
 	for (var i = 0; i < faces.length/3; i++) {
 		geometry.faces.push(new THREE.Face3(faces[i * 3 + 0],
-											faces[i * 3 + 1], 
+											faces[i * 3 + 1],
 											faces[i * 3 + 2]));
 	}
 
@@ -512,7 +510,7 @@ var SurfaceRepresentation = function (verts, faces, style, color) {
 
 };
 
-/** Spheres 
+/** Spheres
  */
 var SphereRepresentation = function (coordinates, radii, colors, resolution) {
     // Initialize stuff for serialization
@@ -550,10 +548,10 @@ var SphereRepresentation = function (coordinates, radii, colors, resolution) {
             face.color.setHex(colors[i]);
             geometry.faces.push(face);
         }
-            
+
     }
 
-    var material = new THREE.MeshPhongMaterial({color: 0xffffff, 
+    var material = new THREE.MeshPhongMaterial({color: 0xffffff,
                                                 vertexColors: THREE.VertexColors});
     this.mesh = new THREE.Mesh(geometry, material);
 
@@ -599,7 +597,7 @@ var BoxRepresentation = function(start, end, color) {
 
     geometry.vertices.push(vS);
     geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vS.z));
-    
+
     geometry.vertices.push(vS);
     geometry.vertices.push(new THREE.Vector3(vS.x, vS.y, vE.z));
 
@@ -629,7 +627,7 @@ var BoxRepresentation = function(start, end, color) {
 
     geometry.vertices.push(new THREE.Vector3(vS.x, vE.y, vE.z));
     geometry.vertices.push(new THREE.Vector3(vS.x, vS.y, vE.z));
-    
+
     var material = new THREE.LineBasicMaterial( {color: color} );
     var cube = new THREE.Line( geometry, material, THREE.LinePieces );
     this.cube = cube;
@@ -669,7 +667,7 @@ var SmoothLineRepresentation = function (coordinates, color, resolution) {
     var geometry = new THREE.Geometry();
     geometry.vertices = path.getPoints(resolution * points.length);
 
-    var material = new THREE.LineBasicMaterial( { color: color, 
+    var material = new THREE.LineBasicMaterial( { color: color,
                                                   fog: true } );
 
     this.geometry = geometry;
@@ -785,9 +783,9 @@ SmoothTubeRepresentation.deserialize = function(json) {
 /**
  * Draw a series of solid cylinders given their start/end coordinates, radii and colors.
  *
- * This is to be used sparingly (max ~100 cylinders because it's inefficient). If you need to render bonds, use 
+ * This is to be used sparingly (max ~100 cylinders because it's inefficient). If you need to render bonds, use
  * the LineRepresentation class, much much faster.
- *  
+ *
  * :param Float32Array startCoords:
  * :param Float32Array endCoords:
  * :param list radii:
@@ -801,17 +799,17 @@ var CylinderRepresentation = function (startCoords, endCoords, radii, colors, re
                      radii: radii,
                      colors: colors,
                      resolution: resolution };
-    
+
     var resolution = (resolution != undefined) ? resolution : 16;
     var cylinders = [];
 
     for (var i=0; i < startCoords.length/3; i++) {
-        var startVec = new THREE.Vector3(startCoords[3*i + 0], 
-                                         startCoords[3*i + 1], 
+        var startVec = new THREE.Vector3(startCoords[3*i + 0],
+                                         startCoords[3*i + 1],
                                          startCoords[3*i + 2]);
 
-        var endVec = new THREE.Vector3(endCoords[3*i + 0], 
-                                       endCoords[3*i + 1], 
+        var endVec = new THREE.Vector3(endCoords[3*i + 0],
+                                       endCoords[3*i + 1],
                                        endCoords[3*i + 2]);
 
         var length = startVec.distanceTo(endVec);
@@ -852,12 +850,12 @@ var CylinderRepresentation = function (startCoords, endCoords, radii, colors, re
             var endCoords = options.endCoords;
 
             for (var i=0; i < startCoords.length/3; i++) {
-                var startVec = new THREE.Vector3(startCoords[3*i + 0], 
-                                                 startCoords[3*i + 1], 
+                var startVec = new THREE.Vector3(startCoords[3*i + 0],
+                                                 startCoords[3*i + 1],
                                                  startCoords[3*i + 2]);
 
-                var endVec = new THREE.Vector3(endCoords[3*i + 0], 
-                                               endCoords[3*i + 1], 
+                var endVec = new THREE.Vector3(endCoords[3*i + 0],
+                                               endCoords[3*i + 1],
                                                endCoords[3*i + 2]);
                 var cylinder = cylinders[i];
                 cylinder.position.copy(startVec);
@@ -898,7 +896,7 @@ var deserialize_array = function (json) {
     if (json.type == 'uint8') {
         return new Uint8Array(buffer);
     }
-    
+
     else if (json.type == 'float32') {
         return new Float32Array(buffer);
     }

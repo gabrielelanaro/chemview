@@ -22,6 +22,7 @@ class RepresentationViewer(DOMWidget):
     # browser side. To work correctly, this javascript class has to be
     # registered and loaded in the browser before this widget is constructed
     # (that's what enable_notebook() does)
+    _view_module = Unicode('nbextensions/chemview_widget', sync=True)
     _view_name = Unicode('MolecularView', sync=True)
 
     width = CInt(sync=True)
@@ -31,6 +32,9 @@ class RepresentationViewer(DOMWidget):
     # Update Camera Hack
     camera_str = CUnicode(sync=True)
     static_moving = CBool(sync=True)
+
+    # Helper
+    loaded = CBool(False, sync=True)
 
     def __init__(self, width=500, height=500):
         '''RepresentationViewer is an IPython notebook widget useful to display 3d scenes through webgl.
@@ -68,13 +72,6 @@ class RepresentationViewer(DOMWidget):
         self.width = width
         self.height = height
 
-        # Things to be called when the js harnessing is intialized
-        self._displayed_callbacks = []
-        def callback(widget):
-            for cb in widget._displayed_callbacks:
-                cb(widget)
-        self.on_displayed(callback)
-
         # Store the events sent from the javascript side
         self._event_handlers = defaultdict(list)
 
@@ -85,6 +82,14 @@ class RepresentationViewer(DOMWidget):
 
         # A record of the new representations
         self.representations = {}
+
+        # Things to be called when the js part is done loading
+        self._displayed_callbacks = []
+        def on_loaded(name, old, new):
+            for cb in self._displayed_callbacks:
+                cb(self)
+
+        self.on_trait_change(on_loaded, "loaded")
 
     def add_representation(self, rep_type, options):
         '''Add a 3D representation to the viewer.  See User Guide for
@@ -146,7 +151,6 @@ class RepresentationViewer(DOMWidget):
             # called when widget is displayed
             def callback(widget, msg=msg):
                 widget.send(msg)
-                widget.on_displayed(callback, remove=True) # Auto-unbind
 
             self._displayed_callbacks.append(callback)
 

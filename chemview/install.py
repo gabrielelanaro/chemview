@@ -46,6 +46,9 @@ require.config({
             exports: "$"
         },
 
+        contextmenu: {
+            exports: 'context'
+        },
     },
 });
 ''',
@@ -57,17 +60,17 @@ def enable_notebook(verbose=0):
 
     This function should be called before using the chemview widgets.
     """
-    libs = ['objexporter.js', 
+    libs = ['objexporter.js',
             'ArcballControls.js', 'filesaver.js',
-            'base64-arraybuffer.js', 'context.js', 
+            'base64-arraybuffer.js', 'context.js',
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
-            'context.standalone.css']
+            'context.standalone.css', 'chemview_widget.js']
     fns = [resource_filename('chemview', os.path.join('static', f)) for f in libs]
-    install_nbextension(fns, verbose=verbose, overwrite=True)
-    display(_REQUIRE_CONFIG)
 
-    widgets = ['chemview_widget.js', 'trajectory_controls_widget.js', 'floatrange_widget.js']
-    for fn in widgets:
-        fn = resource_filename('chemview', os.path.join('static', fn))
-        display(Javascript(filename=fn))
+    [install_nbextension(fn, verbose=verbose, overwrite=True, user=True) for fn in fns]
+    #display(_REQUIRE_CONFIG)
 
+    #widgets = ['chemview_widget.js', 'trajectory_controls_widget.js', 'floatrange_widget.js']
+    #for fn in widgets:
+    #        fn = resource_filename('chemview', os.path.join('static', fn))
+    #        display(Javascript(filename=fn))
