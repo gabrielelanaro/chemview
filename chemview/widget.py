@@ -267,8 +267,11 @@ class TrajectoryControls(DOMWidget):
 
 class FloatRangeWidget(DOMWidget):
 
+    #_view_module = Unicode('nbextensions/floatrange_widget', sync=True)
     _view_name = Unicode('FloatRangeWidget', sync=True)
-    value = Tuple(CFloat, CFloat, default_value=(0.0, 1.0), help="Tuple of (lower, upper) bounds", sync=True)
+
+    value = Tuple(CFloat, CFloat, default_value=(0.0, 1.0),
+                  help="Tuple of (lower, upper) bounds", sync=True)
 
     min = CFloat(sync=True)
     max = CFloat(sync=True)
