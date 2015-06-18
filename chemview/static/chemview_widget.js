@@ -19,8 +19,14 @@ require.config({
         },
 
         'nbextensions/context' : {
+            deps : [ 'nbextensions/jquery-ui.min' ],
             exports : 'context'
         },
+
+        'nbextensions/jquery-ui.min': {
+            exports: "$"
+        },
+
     }
 })
 
