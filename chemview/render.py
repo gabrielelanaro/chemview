@@ -18,17 +18,22 @@ except ImportError:
 __all__ = ['render_povray']
 
 def render_povray(scene, filename='ipython', width=600, height=600,
-                  antialiasing=0.01):
+                  antialiasing=0.01, extra_opts={}):
     '''Render the scene with povray for publication.
 
     :param dict scene: The scene to render
     :param string filename: Output filename or 'ipython' to render in the notebook.
     :param int width: Width in pixels.
     :param int height: Height in pixels.
+    :param dict extra_opts: Dictionary to merge/override with the passed scene.
     '''
     if not vapory_available:
         raise Exception("To render with povray, you need to have the vapory"
                         " package installed.")
+
+    # Adding extra options
+    scene = scene.copy()
+    scene.update(extra_opts)
 
     # Camera target
     aspect = scene['camera']['aspect']
@@ -42,11 +47,37 @@ def render_povray(scene, filename='ipython', width=600, height=600,
                         'look_at', scene['camera']['target'],
                         'angle', h_fov )
 
-    # Lights
-    light_sources = [vp.LightSource( np.array([2,4,-3]) * 1000, 'color', [1,1,1] ),
-                     vp.LightSource( np.array([-2,-4,3]) * 1000, 'color', [1,1,1] ),
-                     vp.LightSource( np.array([-1,2,3]) * 1000, 'color', [1,1,1] ),
-                     vp.LightSource( np.array([1,-2,-3]) * 1000, 'color', [1,1,1] )]
+    global_settings = []
+    # Setup global illumination
+    if scene.get('radiosity', False):
+        # Global Illumination
+        radiosity = vp.Radiosity(
+                    'brightness', 2.0,
+                    'count', 100,
+                    'error_bound', 0.15,
+                    'gray_threshold', 0.0,
+                    'low_error_factor', 0.2,
+                    'minimum_reuse', 0.015,
+                    'nearest_count', 10,
+                    'recursion_limit', 1, #Docs say 1 is enough
+                    'adc_bailout', 0.01,
+                    'max_sample', 0.5,
+                    'media off',
+                    'normal off',
+                    'always_sample', 1,
+                    'pretrace_start', 0.08,
+                    'pretrace_end', 0.01)
+
+        light_sources = []
+        global_settings.append(radiosity)
+    else:
+        # Lights
+        light_sources = [
+                        vp.LightSource( np.array([2,4,-3]) * 1000, 'color', [1,1,1] ),
+                        vp.LightSource( np.array([-2,-4,3]) * 1000, 'color', [1,1,1] ),
+                        vp.LightSource( np.array([-1,2,3]) * 1000, 'color', [1,1,1] ),
+                        vp.LightSource( np.array([1,-2,-3]) * 1000, 'color', [1,1,1] )
+        ]
 
     # Background -- white for now
     background = vp.Background([1, 1, 1])
@@ -54,7 +85,8 @@ def render_povray(scene, filename='ipython', width=600, height=600,
     # Things to display
     stuff = _generate_objects(scene['representations'])
 
-    scene = vp.Scene( camera, objects = light_sources + stuff + [background])
+    scene = vp.Scene( camera, objects = light_sources + stuff + [background],
+                      global_settings=global_settings)
 
     return scene.render(filename, width=width, height=height,
                         antialiasing = antialiasing)
