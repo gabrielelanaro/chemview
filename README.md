@@ -23,9 +23,8 @@ then, you can install chemview directly from the binstar channel.
 
 or, for the development version you can manually install the dependencies:
 
-    $ conda install ipython-notebook
-    $ conda install numpy
-    $ conda install numba
+    $ conda install ipython-notebook numpy numba
+    $ pip install vapory
     $ git clone https://github.com/gabrielelanaro/chemview
     $ cd chemview
     $ pip install .
@@ -47,5 +46,5 @@ At this point you are ready to go!
 
     $ ipython notebook
 
-You can try chemview on the test notebooks present in this distribution or head to the documentation 
-http://chemview.readthedocs.org 
+You can try chemview on the test notebooks present in this distribution or head to the documentation
+http://chemview.readthedocs.org
