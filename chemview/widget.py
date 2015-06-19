@@ -217,6 +217,7 @@ class RepresentationViewer(DOMWidget):
 
 
 class TrajectoryControls(DOMWidget):
+    _view_module = Unicode('nbextensions/trajectory_controls_widget', sync=True)
     _view_name = Unicode('TrajectoryControls', sync=True)
 
     frame = CInt(sync=True)

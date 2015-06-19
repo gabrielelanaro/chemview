@@ -2,27 +2,32 @@
  * Trajectory control Widget for IPython
  *
  */
+ require.config({
+    "paths": {
+      "jquery": "//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min",
+      "jqueryui": "nbextensions/jquery-ui.min"
+    }
+});
 
-require([
-    "jquery",
-    "widgets/js/widget",
-    'jqueryui',
-    ],
-function($, WidgetManager) {
-    var TrajectoryControls = IPython.DOMWidgetView.extend({
+define(["widgets/js/widget",
+        'jquery',
+        'jqueryui'],
+function( widget, $ ) {
+    console.log('hello@@@');
+    var TrajectoryControls = widget.DOMWidgetView.extend({
+
         render : function() {
-
             this.fps = this.model.get('fps');
             this.width = 600;
             this.height = 20;
             var model = this.model;
             // Create the ui elements
-            // 
+            //
             var tc = $('<div/>');
             tc.addClass("ui-widget-header")
               .addClass("ui-corner-all")
-              .css({ padding: "6px", display: 'flex'})
-              .width(this.width);
+              .css({ padding: "6px", display: 'flex'});
+            tc.width(this.width);
 
             var that = this;
             var slider = $('<div/>').slider({
@@ -37,7 +42,6 @@ function($, WidgetManager) {
                     that.running = false;
                 },
             });
-
             this.running = false;
 
             var playButton = $('<button/>').button({
@@ -56,13 +60,12 @@ function($, WidgetManager) {
                         that.running = false;
                     }
                 });
-
             playButton.width(this.height).height(this.height);
             playButton.css("float", "left");
             playButton.appendTo(tc);
 
             // Calculate the number of character to prepare for the correct space
-            
+
             var maxLength = String(model.get("n_frames")).length;
 
             var frameIndicator = $("<span/>").text(model.get("frame") + "/" + model.get("n_frames"))
@@ -82,8 +85,11 @@ function($, WidgetManager) {
             sliderContainer.appendTo(tc);
             frameIndicator.appendTo(tc);
 
-            this.setElement(tc);
-
+            // HACK: We need an extra layer because Jupyter widget creation is
+            // stupid
+            var dummy = $('<div/>');
+            tc.appendTo(dummy);
+            this.setElement(dummy);
             this.slider = slider;
             this.playButton = playButton;
         },
@@ -91,6 +97,7 @@ function($, WidgetManager) {
 
         update : function () {
             this.fps = this.model.get('fps');
+
             return TrajectoryControls.__super__.update.apply(this);
         },
 
@@ -104,7 +111,7 @@ function($, WidgetManager) {
             }
 
             this.playCallbackId = setInterval( function () {
-                
+
                 if (slider.slider('value') < slider.slider('option', 'max')) {
                     slider.slider('value', slider.slider('value') + 1);
                     that.model.set('frame', slider.slider('value'));
@@ -134,5 +141,8 @@ function($, WidgetManager) {
 
     });
 
-    WidgetManager.register_widget_view('TrajectoryControls', TrajectoryControls);
+
+    return {
+        TrajectoryControls : TrajectoryControls
+    };
 });

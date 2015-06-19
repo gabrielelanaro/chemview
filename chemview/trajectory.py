@@ -16,7 +16,7 @@ class TrajectoryViewer(MolecularViewer):
         '''Display a trajectory in the IPython notebook.
 
         :param list coordinate_frames: A list containing the positions of the atoms (as np.ndarray) for each frame.
-        :param dict topology: A dictionary specifying the topology 
+        :param dict topology: A dictionary specifying the topology
 
         .. seealso:: :class:`MolecularViewer`
 
