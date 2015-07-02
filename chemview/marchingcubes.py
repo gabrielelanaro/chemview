@@ -7,7 +7,7 @@ try:
 except ImportError:
     import warnings
     warnings.warn(
-        "Numba not installed. The isosurface generation will be extremely slow",
+    "Numba not installed. The isosurface generation will be extremely slow",
         ImportWarning)
     numba_present = False
 

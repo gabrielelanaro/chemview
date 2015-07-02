@@ -96,21 +96,24 @@ def _generate_objects(representations):
 
     for rep in representations:
         if rep['type'] == 'spheres':
-            for (x, y, z), r, c in zip(rep['options']['coordinates'],
-                                       rep['options']['radii'],
-                                       rep['options']['colors']):
+            for i, (x, y, z) in enumerate(rep['options']['coordinates']):
+                r = rep['options']['radii'][i]
+                c = rep['options']['colors'][i]
                 # Generate the shape
                 sphere = vp.Sphere( [x,y,z] , r, vp.Texture( vp.Pigment( 'color', hex2rgb(c)) ))
                 objects.append(sphere)
 
         elif rep['type'] == 'points':
             # Render points as small spheres
-            for (x, y, z), c, s in zip(rep['options']['coordinates'],
-                                    rep['options']['colors'],
-                                    rep['options']['sizes']):
+            for i, (x, y, z) in enumerate(rep['options']['coordinates']):
+                c = rep['options']['colors'][i]
+                s = rep['options']['sizes'][i]
+                t = _get_transparency(rep['options'], i)
+
                 # Point = sphere with a small radius
                 sphere = vp.Sphere( [x,y,z] , s * 0.15,
-                                    vp.Texture( vp.Pigment( 'color', hex2rgb(c)) ))
+                                    vp.Texture( vp.Pigment( 'color', 'rgbf', hex2rgb(c) + (1-t,))),
+                                    vp.Interior('ior', 1.0))
                 objects.append(sphere)
 
         elif rep['type'] == 'surface':
@@ -129,18 +132,27 @@ def _generate_objects(representations):
         elif rep['type'] == 'cylinders':
             start = rep['options']['startCoords']
             end = rep['options']['endCoords']
-            radii = rep['options']['radii']
             colors = rep['options']['colors']
 
-            for s, e, r, c in zip(start, end, radii, colors):
+            for i, (s, e) in enumerate(zip(start, end)):
+                r = rep['options']['radii'][i]
+                c = rep['options']['colors'][i]
+                t = _get_transparency(rep['options'], i)
+
                 cylinder = vp.Cylinder(s.tolist(), e.tolist(), r,
-                                       vp.Texture(vp.Pigment('color', hex2rgb(c))))
+                                       vp.Texture(vp.Pigment('color', 'rgbf', hex2rgb(c) + (1 - t,))))
                 objects.append(cylinder)
 
         else:
             print("No support for representation type: %s" % rep['type'])
 
     return objects
+
+def _get_transparency(opts, i):
+    t = opts.get('transparency', 1.0)
+    if hasattr(t, "__len__"): # Array test
+        t = t[i]
+    return t
 
 def hex2rgb(hex):
     return ((hex >> 16) & 0xff)/255, ((hex >> 8) & 0xff)/255, (hex & 0x0000ff)/255

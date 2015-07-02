@@ -13,13 +13,14 @@ define(["widgets/js/widget",
         'jquery',
         'jqueryui'],
 function( widget, $ ) {
-    console.log('hello@@@');
     var TrajectoryControls = widget.DOMWidgetView.extend({
 
         render : function() {
             this.fps = this.model.get('fps');
             this.width = 600;
             this.height = 20;
+
+            var startFrame = this.model.get('frame');
             var model = this.model;
             // Create the ui elements
             //
@@ -31,7 +32,7 @@ function( widget, $ ) {
 
             var that = this;
             var slider = $('<div/>').slider({
-                value: 0,
+                value: startFrame,
                 max: this.model.get('n_frames'),
                 slide: function (event, ui) {
                     model.set('frame', ui.value);
