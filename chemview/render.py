@@ -108,7 +108,10 @@ def _generate_objects(representations):
             for i, (x, y, z) in enumerate(rep['options']['coordinates']):
                 c = rep['options']['colors'][i]
                 s = rep['options']['sizes'][i]
-                t = _get_transparency(rep['options'], i)
+                if not 'alpha' in rep['options']:
+                    t = 1.0
+                else:
+                    t = rep['options']['alpha'][i]
 
                 # Point = sphere with a small radius
                 sphere = vp.Sphere( [x,y,z] , s * 0.15,
@@ -137,6 +140,21 @@ def _generate_objects(representations):
             for i, (s, e) in enumerate(zip(start, end)):
                 r = rep['options']['radii'][i]
                 c = rep['options']['colors'][i]
+                t = _get_transparency(rep['options'], i)
+
+                cylinder = vp.Cylinder(s.tolist(), e.tolist(), r,
+                                       vp.Texture(vp.Pigment('color', 'rgbf', hex2rgb(c) + (1 - t,))))
+                objects.append(cylinder)
+
+        elif rep['type'] == 'lines':
+            start = rep['options']['startCoords']
+            end = rep['options']['endCoords']
+            colors = rep['options']['startColors']
+
+            for i, (s, e) in enumerate(zip(start, end)):
+                #r = rep['options']['radii'][i]
+                r = 0.02
+                c = colors[i]
                 t = _get_transparency(rep['options'], i)
 
                 cylinder = vp.Cylinder(s.tolist(), e.tolist(), r,

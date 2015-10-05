@@ -26,12 +26,21 @@ class MolecularViewer(RepresentationViewer):
 
 
 
-    def points(self, size=1.0):
+    def points(self, size=1.0, highlight=None):
         """Display the system as points.
 
         :param float size: the size of the points.
+                
+        
         """
         colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
+        if highlight is not None:
+            if isinstance(highlight, int):
+                colorlist[highlight] = 0xff0000
+            if isinstance(highlight, (list, np.ndarray)):
+                for i in highlight:
+                    colorlist[i] = 0xff0000
+        
         sizes = [size] * len(self.topology['atom_types'])
 
         points = self.add_representation('points', {'coordinates': self.coordinates.astype('float32'),
@@ -95,10 +104,10 @@ class MolecularViewer(RepresentationViewer):
 
         if 'bonds' in self.topology:
             start_idx, end_idx = zip(*self.topology['bonds'])
-            cylinders = self.add_representation('cylinders', {'startCoords': self.coordinates[list(start_idx)],
-                                                  'endCoords': self.coordinates[list(end_idx)],
-                                                  'colors': [0xcccccc] * len(self.coordinates),
-                                                  'radii': [stick_radius] * len(self.coordinates)})
+            cylinders = self.add_representation('cylinders', {'startCoords': self.coordinates[list(start_idx)].astype('float32'),
+                                                  'endCoords': self.coordinates[list(end_idx)].astype('float32'),
+                                                  'colors': [0xcccccc] * len(start_idx),
+                                                  'radii': [stick_radius] * len(start_idx)})
             # Update closure
             def update(self=self, rep=cylinders, start_idx=start_idx, end_idx=end_idx):
                 self.update_representation(rep, {'startCoords': self.coordinates[list(start_idx)],
