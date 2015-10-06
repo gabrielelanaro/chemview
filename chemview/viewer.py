@@ -26,21 +26,22 @@ class MolecularViewer(RepresentationViewer):
 
 
 
-    def points(self, size=1.0, highlight=None):
+    def points(self, size=1.0, highlight=None, colorlist=None):
         """Display the system as points.
 
         :param float size: the size of the points.
-                
-        
+
+
         """
-        colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
+        if colorlist is None:
+            colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
         if highlight is not None:
             if isinstance(highlight, int):
                 colorlist[highlight] = 0xff0000
             if isinstance(highlight, (list, np.ndarray)):
                 for i in highlight:
                     colorlist[i] = 0xff0000
-        
+
         sizes = [size] * len(self.topology['atom_types'])
 
         points = self.add_representation('points', {'coordinates': self.coordinates.astype('float32'),
@@ -82,13 +83,14 @@ class MolecularViewer(RepresentationViewer):
         self.points(pointsize)
         self.lines()
 
-    def ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02):
+    def ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02, colorlist=None):
         """Display the system using a ball and stick representation.
         """
 
         # Add the spheres
 
-        colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
+        if colorlist is None:
+            colorlist = [get_atom_color(t) for t in self.topology['atom_types']]
         sizes = [ball_radius] * len(self.topology['atom_types'])
 
         spheres = self.add_representation('spheres', {'coordinates': self.coordinates.astype('float32'),
