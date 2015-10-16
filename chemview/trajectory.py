@@ -6,7 +6,7 @@ from .widget import TrajectoryControls
 import numpy as np
 
 from IPython.display import display
-from IPython.utils.traitlets import (CInt, link)
+from traitlets import (CInt, link)
 
 class TrajectoryViewer(MolecularViewer):
 
