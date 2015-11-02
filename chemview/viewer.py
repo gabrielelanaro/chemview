@@ -4,7 +4,7 @@ from .utils import get_atom_color
 from .marchingcubes import marching_cubes
 
 
-from IPython.utils.traitlets import Any
+from traitlets import Any
 
 __all__ = ['MolecularViewer']
 # Library-agnostic molecular viewer
