@@ -162,7 +162,7 @@ class RepresentationViewer(DOMWidget):
             else:
                 # This is when custom serialization happens
                 if isinstance(v, np.ndarray):
-                    if v.dtype == 'float64':
+                    if v.dtype != 'float32':
                         # We don't support float64 on js side
                         v = v.astype('float32')
 
