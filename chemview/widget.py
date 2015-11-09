@@ -318,15 +318,15 @@ class Layout(DOMWidget):
     _model_name = Unicode("BoxModel", sync=True)
     
     children = Tuple(sync=True, **widget_serialization)
-    width = CInt(sync=True)
-    height = CInt(sync=True)
+    # width = CInt(sync=True)
+    # height = CInt(sync=True)
     
     def __init__(self, children, width=500, height=500):
         super(Layout, self).__init__()
         self.children = children
-        self.width = width
-        self.height = height
-    
+        # self.width = width
+        # self.height = height
+
 
 # Backporting some extra widgets
 

@@ -41,46 +41,81 @@ define([
             console.log("Constructor init");
             BoxView.__super__.initialize.apply(this, arguments);
             var that = this;
+            this.$box = this.$el;
             
             this.children_views = new widget.ViewList(this.add_child_model, null, this);
+            console.log(this.children_views.views);
             this.listenTo(this.model, 'change:children', function(model, value) {
                 this.children_views.update(value);
             }, this);
             this.listenTo(this.model, 'change:overflow_x', this.update_overflow_x, this);
             this.listenTo(this.model, 'change:overflow_y', this.update_overflow_y, this);
             this.listenTo(this.model, 'change:box_style', this.update_box_style, this);
+            
+            // This is a vertical flexbox
+            this.update_attr("display", "flex");
+            this.update_attr("flex-direction", "column");
+            
             // Event capturing: now we do the whole element as fullscreen in spite
             // of single elements
-            this.$el.get(0).addEventListener("dblclick", function (event) {
-                event.stopPropagation();
-                that.$el.fullScreen(true);
-                that.$el.width(screen.width).height(screen.height);
-                
-                // For each view we do a resize
-                for (let viewPromise of that.children_views.views) {
-                    viewPromise.then(function (view) { 
-                        view.resize(screen.width, screen.height)
-                    });
-                
-                
-                }
-            }, true);
+            this.$el.get(0).addEventListener("dblclick", this._on_dblclick.bind(this), true);
             
-            $(document).on("fullscreenchange", function (event) {
-                if (that.$el.fullScreen())
-                    return;
-                    
-                // Coming back from fullscreen we simply reset width and height
-                var width = that.model.get('width'),
-                    height = that.model.get('height');
-                that.$el.width(width).height(height);
-                // For each view we do a resize
-                for (let viewPromise of that.children_views.views) {
-                    viewPromise.then(function (view) { 
-                        view.resize(width, height)
-                    });
-                }
-            });
+            this._prev_size = {};
+        },
+
+        _on_dblclick: function (event) {
+            event.stopPropagation();
+            $(document).on("fullscreenchange", this._on_fullscreenchange.bind(this));
+            
+            this.$el.fullScreen(true);
+            console.log(this);
+            this._prev_size[this.cid] = [this.model.get("width"), this.model.get("height")];
+            
+            this.$el.width(screen.width).height(screen.height);
+            
+            var that = this;
+            // We save previous values of width and height
+            for (var viewPromise of this.children_views.views) {
+                viewPromise.then( function (view) {
+                    that._prev_size[view.cid] = [view.model.get("width"), view.model.get("height")];
+                });
+            }
+            //
+            
+            // TODO UGLY this is just to force it to work, Ideally the Layout
+            // should be calculated
+            this.children_views.views[0].then(function (view) { view.resize(screen.width, screen.height - 35); });
+            this.children_views.views[1].then(function (view) { view.resize(screen.width, screen.height);});
+        },
+        
+        _on_fullscreenchange: function(event) {
+            
+            console.log("Fullscreen " + this.$el.fullScreen());
+            var that = this;
+            if (this.$el.fullScreen()) {
+                return;
+            }
+            // The container box itself get shrunk to its initial dimension
+            var box_width = this._prev_size[this.cid][0],
+                box_height = this._prev_size[this.cid][1];
+            this.model.set("width", box_width);
+            this.model.set("height", box_height);
+            this.$el.width(box_width).height(box_height);
+            this.touch();
+            //
+            
+            // For each view we do a resize to its previous value
+            for (var viewPromise of this.children_views.views) {
+                viewPromise.then(function (view) { 
+                    var width = that._prev_size[view.cid][0],
+                        height = that._prev_size[view.cid][1];
+                    view.resize(width, height);
+                });
+            }
+            //
+            
+            // We disconnect the event handler from the document
+            $(document).off("fullscreenchange", this._on_fullscreenchange.bind(this));
         },
 
         update_attr: function(name, value) {
@@ -140,14 +175,21 @@ define([
                 // Trigger the displayed event of the child view.
                 that.displayed.then(function() {
                     view.trigger('displayed');
-                }).then(function () { // Change the size
-                    view.resize(that.model.get("width"), that.model.get("height"));
+                }).then(function () {
+                    that.child_after_displayed(view);
                 });
                 
                 return view;
             }).catch(utils.reject("Couldn't add child view to box", true));
         },
 
+        child_after_displayed : function (view) {
+            /**
+             * Callback that gets execuded when views are displayed
+             */
+            console.log("Displayed hello");
+        },
+        
         remove: function() {
             /**
              * We remove this widget before removing the children as an optimization
@@ -156,6 +198,7 @@ define([
              */
             BoxView.__super__.remove.apply(this, arguments);
             this.children_views.remove();
+            $(document).off("fullscreenchange", this._on_fullscreenchange.bind(this));
         },
     });
 

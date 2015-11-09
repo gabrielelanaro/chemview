@@ -50,9 +50,10 @@ define(['widgets/js/widget',
 
             var that = this;
             var model = this.model;
-            var canvas = $("<canvas/>").height(HEIGHT).width(WIDTH);
+            var canvas = $("<canvas/>"); // .height(HEIGHT).width(WIDTH);
             var mv = new MolecularViewer(canvas);
             this.mv = mv;
+            this.mv.resize(WIDTH, HEIGHT);
             
             this.model.on("msg:custom", function (msg) {
                 that.on_msg(msg);
@@ -65,6 +66,7 @@ define(['widgets/js/widget',
                         mv.resize(ui.size.width, ui.size.height);
                         model.set('width', ui.size.width);
                         model.set('height', ui.size.height);
+                        that.touch();
                     },
                     stop : function(event, ui) {
                         mv.render();
