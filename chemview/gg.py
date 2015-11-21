@@ -21,6 +21,7 @@ class ggview(object):
         
         # Apply scale that map data to aes
         for scale in self.scales:
+            scale.render()
             aes = scale.apply(aes)
         
         primitives = []
@@ -34,8 +35,6 @@ class ggview(object):
     def __add__(self, other):
         
         if isinstance(other, Geom):
-            # stuff = other.produce(self.aes)
-            # self.primitives.extend(stuff)
             self.geometries.append(other)
             
         elif isinstance(other, Scale):
@@ -218,8 +217,7 @@ def process_colors(size, colors, limits=None, palette="YlGnBu"):
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         cmap = cm.get_cmap(palette)
         m = cm.ScalarMappable(norm=norm, cmap=cmap)
-        
-        return rgbint_to_hex(m.to_rgba(colors, bytes=True)[:, :3])
+        return [rgbint_to_hex(c) for c in m.to_rgba(colors, bytes=True)[:, :3]]
     else:
         raise ValueError("Wrong color format")
 
