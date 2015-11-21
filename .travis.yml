@@ -9,17 +9,22 @@ sudo: false
 env:
   global:
   - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
-  matrix:
-  - GROUP=python
-  - GROUP=js/notebook
-before_install:
-- if [[ $GROUP == js* ]]; then npm install -g casperjs; fi
+  # matrix:
+  # - GROUP=python
+  # - GROUP=js/notebook
+
 install:
-- pip install .
+  - npm install -g nightwatch
+  - pip install .
+
+before-script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  
 script:
-- if [[ $GROUP == js* ]]; then python -m notebook.jstest ${GROUP:3}; fi
-- if [[ $GROUP == python ]]; then nosetests --with-coverage --cover-package=notebook
-  notebook; fi
+  - nightwatch
+
 deploy:
   provider: pypi
   user: gabrielelanaro
