@@ -1,29 +1,31 @@
-# http://travis-ci.org/#!/ipython/ipython
 language: python
-
 cache:
-    directories:
-        - ~/.cache/bower
-
+  directories:
+  - ~/.cache/bower
 python:
-    - 3.5
-    - 2.7
+- 3.5
+- 2.7
 sudo: false
-
 env:
   global:
-    - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+  - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
   matrix:
-    - GROUP=python
-    - GROUP=js/notebook
-
+  - GROUP=python
+  - GROUP=js/notebook
 before_install:
-    - 'if [[ $GROUP == js* ]]; then npm install -g casperjs; fi'
-    - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
-
+- if [[ $GROUP == js* ]]; then npm install -g casperjs; fi
 install:
-    - pip install -f travis-wheels/wheelhouse --pre file://$PWD#egg=notebook[test]
-
+- pip install .
 script:
-    - 'if [[ $GROUP == js* ]]; then python -m notebook.jstest ${GROUP:3}; fi'
-    - 'if [[ $GROUP == python ]]; then nosetests --with-coverage --cover-package=notebook notebook; fi'
+- if [[ $GROUP == js* ]]; then python -m notebook.jstest ${GROUP:3}; fi
+- if [[ $GROUP == python ]]; then nosetests --with-coverage --cover-package=notebook
+  notebook; fi
+deploy:
+  provider: pypi
+  user: gabrielelanaro
+  password:
+    secure: Effv1BoUrealLJ+K9Tro+kedaZuxCTwZkult70Q3ESuWaL9tf5wwgSqzU6SZ4v41mc5tWQ1gakLdzCdsS8OkBHhafwhKP25qgj5b3Fc6lEkb/We/aSs9LpCHU7axw/zxsEdwnLa4IvwysaLhGqnZwxntSbMA4O6hCK5qPaikOMM=
+  on:
+    tags: true
+    repo: gabrielelanaro/chemview
+    branch: webapp
