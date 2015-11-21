@@ -1,11 +1,18 @@
 language: python
+
 cache:
   directories:
   - ~/.cache/bower
+
+notifications:
+  email: false
+    
 python:
 - 3.5
 - 2.7
+
 sudo: false
+
 env:
   global:
   - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
