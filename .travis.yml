@@ -22,6 +22,7 @@ env:
 
 install:
   - npm install -g nightwatch
+  - pip install jupyter numpy matplotlib
   - pip install .
 
 before_script:
