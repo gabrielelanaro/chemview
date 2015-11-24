@@ -3,9 +3,9 @@ module.exports = {
         // control the browser
         open_notebook(browser);
         browser.restartKernel(2000)
-               .executeCell(0);
-               
-        execute_cell(browser);
+               .executeCell(0)
+               .waitForElementVisible(".ipy-widget.widget-container.widget-box", 5000);
+        
         browser.expect.element(".output_error").not.present;
         
         var CANVAS_SEL = ".ipy-widget.widget-container.widget-box canvas";
@@ -28,18 +28,4 @@ module.exports = {
 
 function open_notebook(browser) {
     return browser.url("http://localhost:8889/notebooks/notebooks/TestAuto.ipynb");
-}
-
-function execute_cell(browser) {
-    return browser.execute(
-        function () {
-            var cell = IPython.notebook.get_cell(0);
-            cell.execute();
-        },
-        null,
-        function (result) {
-            browser.waitForElementVisible(".ipy-widget.widget-container.widget-box", 3000); // Wait for change to take effect
-        }
-    );
-            
 }
