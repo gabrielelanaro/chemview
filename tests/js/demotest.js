@@ -2,8 +2,9 @@ module.exports = {
     "Test Fullscreen": function(browser){
         // control the browser
         open_notebook(browser);
-        restart_kernel(browser);
-        
+        browser.restartKernel(2000)
+               .executeCell(0);
+               
         execute_cell(browser);
         browser.expect.element(".output_error").not.present;
         
@@ -29,17 +30,16 @@ function open_notebook(browser) {
     return browser.url("http://localhost:8889/notebooks/notebooks/TestAuto.ipynb");
 }
 
-function restart_kernel(browser) {
-    return browser.click('button[data-jupyter-action="ipython.restart-kernel"]')
-                 .pause(2000)
-                 .keys([browser.Keys.ENTER]);
-}
-
 function execute_cell(browser) {
-    return browser
-            .assert.visible(".input_area")
-            .elementIdClick(".input_area")
-            .pause(1000) 
-            .keys([browser.Keys.SHIFT, browser.Keys.ENTER])
-            .waitForElementVisible(".ipy-widget.widget-container.widget-box", 3000); // Wait for change to take effect
+    return browser.execute(
+        function () {
+            var cell = IPython.notebook.get_cell(0);
+            cell.execute();
+        },
+        null,
+        function (result) {
+            browser.waitForElementVisible(".ipy-widget.widget-container.widget-box", 3000); // Wait for change to take effect
+        }
+    );
+            
 }
