@@ -4,6 +4,9 @@ module.exports = {
         open_notebook(browser);
         browser.restartKernel(2000)
                .executeCell(0)
+               .getLog('browser', function(result) {
+                         console.log(result);
+                       })
                .waitForElementVisible(".ipy-widget.widget-container.widget-box", 5000);
         
         browser.expect.element(".output_error").not.present;
