@@ -29,7 +29,7 @@ before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - "sleep 3" # give xvfb some time to start
-  - "jupyter notebook &"
+  - "jupyter notebook --port=8889 &"
   - "sleep 3" # give xvfb some time to start
 
 script:
