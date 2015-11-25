@@ -1,9 +1,5 @@
 language: python
 
-addons:
-  apt:
-    packages:
-      - libosmesa6-dev
 cache:
   directories:
   - ~/.cache/bower
@@ -16,13 +12,6 @@ python:
 - 2.7
 
 sudo: false
-
-env:
-  global:
-  - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
-  # matrix:
-  # - GROUP=python
-  # - GROUP=js/notebook
 
 install:
   - npm install -g nightwatch

@@ -1,7 +1,7 @@
 module.exports = {
     "Test Fullscreen": function(browser){
         // control the browser
-        open_notebook(browser);
+        browser.openNotebook("TestAuto.ipynb");
         
         browser.restartKernel(2000)
                .executeCell(0)
@@ -23,10 +23,19 @@ module.exports = {
         
         browser.end();
 
+    },
+    
+    "Test different shapes": function (browser) {
+        browser.openNotebook("TestNotebook.ipynb");
+        
+        browser.restartKernel(2000);
+        for ( var i = 0; i < 23 ; i++) {
+           browser.executeCell(i)
+                  .pause(1000)
+                  .cellHasError(i);
+        }
+        
+        browser.end();
     }
-}
-
-
-function open_notebook(browser) {
-    return browser.url("http://localhost:8889/notebooks/notebooks/TestAuto.ipynb");
+    
 }

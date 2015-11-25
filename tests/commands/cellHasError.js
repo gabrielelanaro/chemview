@@ -17,7 +17,6 @@ exports.command = function(cellNumber, callback) {
 
     function(result) {
       if (result.value != null) {
-        console.log(result.value);
         self.assert.ok(result.value.output_type != 'error', "Check that python has no error");
       }
       
