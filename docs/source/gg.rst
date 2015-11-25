@@ -69,6 +69,7 @@ obtain a color that changes frame by frame.
 Overriding aesthetics
 ---------------------
 
+It is possible
 
 Theming
 -------

@@ -1,8 +1,9 @@
 # chemview
 
 [![Documentation Status](https://readthedocs.org/projects/chemview/badge/?version=latest)](https://readthedocs.org/projects/chemview/?badge=latest)
+[![Build Status](https://travis-ci.org/gabrielelanaro/chemview.svg?branch=master)](https://travis-ci.org/gabrielelanaro/chemview)
 
-Version: 0.1
+Version: 0.2
 
 The new generation molecular viewer for the IPython notebook.
 
@@ -31,9 +32,8 @@ or, for the development version you can manually install the dependencies:
 
 It is also possible to install chemview using pip:
 
-    pip install ipython[notebook] # ipython 2.x (development version 0.3 breaks the widget API)
-    pip install numpy
-    pip install numba
+    pip install notebook # We support Jupyter 4.x
+    pip install numba numpy matplotlib
 
     # Download and install chemview
     git clone https://github.com/gabrielelanaro/chemview
