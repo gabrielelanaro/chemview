@@ -7,7 +7,12 @@ module.exports = {
     },
     "Test Fullscreen": function(browser){
         // control the browser
-        open_notebook(browser);
+        open_notebook(browser)
+                      .source(function (result){
+                      // Source will be stored in result.value
+                               console.log(result.value);
+        });
+        
         browser.restartKernel(2000)
                .executeCell(0)
                .waitForElementVisible(".ipy-widget.widget-container.widget-box", 5000);
