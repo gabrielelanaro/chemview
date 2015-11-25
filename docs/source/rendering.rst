@@ -1,4 +1,18 @@
-It is possible to render with povray.
+=================
+Offline Rendering
+=================
+
+Chemview interactive visualization are "nice", but are not something you would
+put in a publication. In this case we can use `Povray <http://www.povray.org/>`_
+throught the vapory bindings.
+
+On Ubuntu, you can install povray with::
+
+    sudo apt-get install povray
+
+And installing vapory is as easy as::
+
+    pip install vapory
 
 Scene dictionary format:
 
