@@ -7,7 +7,8 @@ module.exports = {
                .executeCell(0)
                .pause(3000)
                .cellHasError(0);
-    
+        
+        browser.getLog(function (result) { console.log(result); });
         browser.waitForElementVisible(".ipy-widget.widget-container.widget-box", 10);
         
         var CANVAS_SEL = ".ipy-widget.widget-container.widget-box canvas";
