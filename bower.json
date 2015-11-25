@@ -1,0 +1,21 @@
+{
+  "name": "chemview",
+  "description": "Jupyter notebook widget for molecular dynamics",
+  "main": "",
+  "authors": [
+    "Gabriele Lanaro <gabriele.lanaro@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/gabrielelanaro/chemview",
+  "moduleType": [],
+  "private": true,
+  "directory": "chemview/static/components",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "chemview/static/components",
+    "test",
+    "tests"
+  ]
+}

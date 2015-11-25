@@ -10,51 +10,6 @@ with warnings.catch_warnings():
 
 __all__ = ['enable_notebook']
 
-_REQUIRE_CONFIG = Javascript('''
-require.config({
-    paths: {
-        'three': '/nbextensions/three.min',
-        'exporter' : '/nbextensions/objexporter',
-        'filesaver' : '/nbextensions/filesaver',
-        'base64-arraybuffer': '/nbextensions/base64-arraybuffer',
-        'jqueryui': '/nbextensions/jquery-ui.min',
-        'contextmenu': '/nbextensions/context',
-        'ArcballControls' : '/nbextensions/ArcballControls',
-        'chemview': '/nbextensions/chemview',
-    },
-    shim: {
-        three: {
-            exports: 'THREE'
-        },
-
-        chemview: {
-            deps: ['three', 'ArcballControls'],
-            exports: 'MolecularViewer'
-        },
-
-        exporter: {
-            deps: ['three'],
-            exports: 'THREE.OBJExporter'
-        },
-
-        ArcballControls: {
-            deps: ['three'],
-            exports: 'THREE.ArcballControls',
-        },
-
-        jqueryui: {
-            exports: "$"
-        },
-
-        contextmenu: {
-            exports: 'context'
-        },
-    },
-});
-''',
-css  = ['/nbextensions/context.standalone.css']
-)
-
 def enable_notebook(verbose=0):
     """Enable IPython notebook widgets to be displayed.
 
@@ -65,13 +20,8 @@ def enable_notebook(verbose=0):
             'base64-arraybuffer.js', 'context.js',
             'chemview.js', 'three.min.js', 'jquery-ui.min.js',
             'context.standalone.css', 'chemview_widget.js',
-            'trajectory_controls_widget.js']
+            'trajectory_controls_widget.js', "layout_widget.js",
+            "components/jquery-fullscreen/jquery.fullscreen.js"]
     fns = [resource_filename('chemview', os.path.join('static', f)) for f in libs]
 
     [install_nbextension(fn, verbose=verbose, overwrite=True, user=True) for fn in fns]
-    #display(_REQUIRE_CONFIG)
-
-    #widgets = ['chemview_widget.js', 'trajectory_controls_widget.js', 'floatrange_widget.js']
-    #for fn in widgets:
-    #        fn = resource_filename('chemview', os.path.join('static', fn))
-    #        display(Javascript(filename=fn))

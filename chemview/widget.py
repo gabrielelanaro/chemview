@@ -1,15 +1,15 @@
 from __future__ import absolute_import
-from uuid import uuid4
+
+import json
 from collections import defaultdict
+from functools import partial
+from uuid import uuid4
 
 import numpy as np
-import json
-
-from IPython.display import display, Javascript, Image
-from ipywidgets.widgets import DOMWidget
-from traitlets import (Unicode, Bool, Bytes, CInt, Any,
-                       Dict, Enum, CFloat, List, Tuple, CUnicode,
-                       CBool)
+from IPython.display import Image, Javascript, display
+from ipywidgets.widgets import DOMWidget, widget_serialization
+from traitlets import (Any, Bool, Bytes, CBool, CFloat, CInt, CUnicode, Dict,
+                       Enum, List, Tuple, Unicode)
 
 from .utils import encode_numpy
 
@@ -91,7 +91,7 @@ class RepresentationViewer(DOMWidget):
 
         self.on_trait_change(on_loaded, "loaded")
 
-    def add_representation(self, rep_type, options):
+    def add_representation(self, rep_type, options, rep_id=None):
         '''Add a 3D representation to the viewer.  See User Guide for
         a complete description of the representations available.
 
@@ -100,9 +100,15 @@ class RepresentationViewer(DOMWidget):
 
         '''
         # Add our unique id to be able to refer to the representation
-        rep_id = uuid4().hex
+        if rep_id is None:
+            rep_id = uuid4().hex
+        
+        if rep_type in checkers:
+            options = checkers[rep_type](options)
+
         self.representations[rep_id] = {'type' : rep_type,
                                         'options': options.copy()}
+
         self._remote_call('addRepresentation', type=rep_type, repId=rep_id, options=options)
         return rep_id
 
@@ -123,6 +129,9 @@ class RepresentationViewer(DOMWidget):
 
         '''
         self.representations[rep_id]['options'].update(options)
+        rep_type = self.representations[rep_id]["type"]
+        if rep_type in checkers:
+            options = checkers[rep_type](options)
         self._remote_call('updateRepresentation', repId=rep_id, options=options)
 
     def _connect_event(self, event_name, callback):
@@ -132,6 +141,7 @@ class RepresentationViewer(DOMWidget):
 
             - displayImg
             - serialize
+            - fullscreen
 
 
         '''
@@ -169,7 +179,7 @@ class RepresentationViewer(DOMWidget):
                     dictionary[k] = encode_numpy(v)
         return dictionary
 
-    def _handle_custom_msg(self, content):
+    def _handle_custom_msg(self, content, buffers=None):
         # Handle custom messages sent by the javascript counterpart
         event = content.get('event', '')
         for cb in self._event_handlers[event]:
@@ -207,24 +217,52 @@ class RepresentationViewer(DOMWidget):
                             {'position': np.array([-1, 2, 3]) * 1000,
                              'color': 0xffffff } ]
         # Objects
-        scene['representations'] = self.representations.values()
+        rep = {k: v.copy() for v in self.representations.items()}
+        
+        scene['representations'] = [v.update({"id" : k}) for k, v in rep.items()]
+        scene['representations'] = [item.update({'id'})]
         scene['background'] = self.background
 
         return scene
+    
+    @classmethod
+    def from_scene(cls, scenedict):
+        self = cls()
+        
+        """Build a representation from scenedict"""
+        for rep in scenedict["representations"]:
+            self.add_representation(rep["type"], rep["options"], rep['rep_id'])
+        return self
+            
+            
+def check_points(options):
+    cleaned = {}
+    cleaned["coordinates"] = np.ascontiguousarray(options["coordinates"], dtype="float32")
+    if "sizes" in options:
+        cleaned["sizes"] = list(options["sizes"])
+    
+    if "colors" in options:
+        cleaned["colors"] = list(options["colors"])
+    
+    if options.get("visible", None) is not None:
+        # Careful! np.bool_ is not serializable!
+        cleaned["visible"] = [bool(i) for i in options["visible"]]
+    
+    return cleaned
 
-
-
-
+checkers = {"points" : check_points }
 
 class TrajectoryControls(DOMWidget):
     _view_module = Unicode('nbextensions/trajectory_controls_widget', sync=True)
     _view_name = Unicode('TrajectoryControls', sync=True)
 
+    width = CInt(sync=True)
+    
     frame = CInt(sync=True)
     n_frames = CInt(sync=True)
     fps = CInt(sync=True)
-
-    def __init__(self, n_frames, fps=30):
+    
+    def __init__(self, n_frames, fps=30, width=500):
         '''Play/Pause controls useful for playing trajectories.
 
         Example:
@@ -259,10 +297,36 @@ class TrajectoryControls(DOMWidget):
         super(TrajectoryControls, self).__init__()
         self.n_frames = n_frames - 1
         self.fps = fps
+        self.width = width
+    
+    def attach(self, event, widget):
+        widget._connect_event("fullscreen", partial(self._handle_fullscreen, widget))
+    
+    def _handle_fullscreen(self, widget, content):
+        self.send({"type": "callMethod", 
+                   "methodName": "fullscreen",
+                   "args": { "model_id": widget.model_id }})
 
     def on_frame_change(self, callback):
         '''Connect a callback to be executed every time the frame attribute changes.'''
         self.on_trait_change(lambda name, old, new: callback(new), "frame")
+
+class Layout(DOMWidget):
+    
+    _view_module = Unicode("nbextensions/layout_widget", sync=True)
+    _view_name = Unicode("Layout", sync=True)
+    _model_name = Unicode("BoxModel", sync=True)
+    
+    children = Tuple(sync=True, **widget_serialization)
+    # width = CInt(sync=True)
+    # height = CInt(sync=True)
+    
+    def __init__(self, children, width=500, height=500):
+        super(Layout, self).__init__()
+        self.children = children
+        # self.width = width
+        # self.height = height
+
 
 # Backporting some extra widgets
 

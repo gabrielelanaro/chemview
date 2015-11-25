@@ -23,7 +23,7 @@ or, for the development version you can manually install the dependencies:
 
 .. code-block:: bash
 
-    $ conda install ipython-notebook
+    $ conda install notebook
     $ conda install numpy
     $ conda install numba
     $ git clone https://github.com/gabrielelanaro/chemview
@@ -34,7 +34,7 @@ It is also possible to install chemview using pip:
 
 .. code-block:: bash
 
-    pip install ipython[notebook] # ipython 2.x (development version 0.3 breaks the widget API)
+    pip install notebook # Jupyter 4.x
     pip install numpy
     pip install numba
 

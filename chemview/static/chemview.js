@@ -1,3 +1,4 @@
+
 var MolecularViewer = function ($el) {
 	/* A MolecularViewer displays and manages a set of representations for a chemical system.
 
@@ -213,7 +214,7 @@ MolecularViewer.prototype = {
  * :param list colors: a list of colors (one for each point) expressed as hexadecimal numbers
  * :param list sizes: a list of sizes for the points
  */
-var PointsRepresentation = function (coordinates, colors, sizes) {
+var PointsRepresentation = function (coordinates, colors, sizes, visible) {
     // Initialize stuff for serialization
     this.type = "points";
     this.options = {'coordinates': coordinates,
@@ -238,16 +239,23 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
             colors.push(DEFAULT_COLOR);
         }
     }
+	
+	
+    if (visible == undefined) {
+        var visible = [];
+        for (var i=0; i < coordinates.length/3; i++) {
+            visible.push(true);
+        }
+    }
 
     // That is the points part
     var geo = new THREE.Geometry();
     this.geometry = geo;
 
     var attributes = {
-
         color: { type: 'c', value: []},
         pointSize: { type: 'f', value: sizes},
-
+		visible: { type: "i", value: visible }
     };
 
 
@@ -263,13 +271,14 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
     var vertex_shader = "\
         uniform float scale;\
         attribute vec3 color;\
+		attribute float visible;\
         attribute float pointSize;\
         varying vec3 vColor;\
         \
         void main() {\
             vColor = color;\
             vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-            gl_PointSize = pointSize * ( scale / length( mvPosition.xyz ));\
+            gl_PointSize = visible * pointSize * ( scale / length( mvPosition.xyz ));\
             gl_Position = projectionMatrix * mvPosition;\
         }\
     ";
@@ -286,7 +295,7 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
 
 
     var shaderMaterial = new THREE.ShaderMaterial( {
-        attributes:     attributes,
+        attributes: attributes,
         uniforms: {'scale': { 'type': 'f',
                               'value': 250} },
         vertexShader:   vertex_shader,
@@ -316,10 +325,23 @@ var PointsRepresentation = function (coordinates, colors, sizes) {
             this.particleSystem.geometry.verticesNeedUpdate = true;
         }
 
+        if (options.colors != undefined) {
+			var threeColors = _.map(options.colors, function ( hexInt ) { return new THREE.Color(hexInt) } )
+            this.particleSystem.material.attributes.color.value = threeColors;
+            this.particleSystem.material.attributes.color.needsUpdate = true;
+        }
+		
         if (options.sizes != undefined) {
             this.particleSystem.material.attributes.pointSize.value = options.sizes;
             this.particleSystem.material.attributes.pointSize.needsUpdate = true;
         }
+        
+		if (options.visible != undefined) {
+            this.particleSystem.material.attributes.visible.value = options.visible;
+            this.particleSystem.material.attributes.visible.needsUpdate = true;
+        }
+		
+		
 
     };
 

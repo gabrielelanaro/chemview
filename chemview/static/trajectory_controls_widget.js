@@ -13,13 +13,14 @@ define(["widgets/js/widget",
         'jquery',
         'jqueryui'],
 function( widget, $ ) {
-    var TrajectoryControls = widget.DOMWidgetView.extend({
+    
+    var TrajectoryControlsWidget = widget.DOMWidgetView.extend({
 
         render : function() {
             this.fps = this.model.get('fps');
-            this.width = 600;
+            this.width = this.model.get("width");
             this.height = 20;
-
+            PADDING = 6;
             var startFrame = this.model.get('frame');
             var model = this.model;
             // Create the ui elements
@@ -27,10 +28,19 @@ function( widget, $ ) {
             var tc = $('<div/>');
             tc.addClass("ui-widget-header")
               .addClass("ui-corner-all")
-              .css({ padding: "6px", display: 'flex'});
-            tc.width(this.width);
-
+              .css({ padding: PADDING + "px", display: 'flex'});
+            tc.width(this.width - 2 * PADDING); 
+            
+            model.on("change:width", function () {
+                tc.width(model.get("width") - 2 * PADDING);
+            })
+            
+            
             var that = this;
+            this.model.on("msg:custom", function (msg) {
+                that.on_msg(msg);
+            });
+            
             var slider = $('<div/>').slider({
                 value: startFrame,
                 max: this.model.get('n_frames'),
@@ -61,14 +71,13 @@ function( widget, $ ) {
                         that.running = false;
                     }
                 });
+            
             playButton.width(this.height).height(this.height);
             playButton.css("float", "left");
             playButton.appendTo(tc);
-
             // Calculate the number of character to prepare for the correct space
 
             var maxLength = String(model.get("n_frames")).length;
-
             var frameIndicator = $("<span/>").text(model.get("frame") + "/" + model.get("n_frames"))
                                              .css( { "width": (2*maxLength) + "em",
                                                      "text-align": "right",
@@ -78,6 +87,7 @@ function( widget, $ ) {
             model.on("change:frame", function () {
                 frameIndicator.text(model.get("frame") + "/" + model.get("n_frames"));
             });
+            
             // We add an extra container for the slider just for the styling
             var sliderContainer = $("<div/>").css({ "margin": "4px 16px" ,
                                                     "flex-grow" : "1" });
@@ -95,11 +105,15 @@ function( widget, $ ) {
             this.playButton = playButton;
         },
 
-
+        resize : function (width, height) {
+            this.model.set("width", width);
+            this.touch();
+        },
+        
         update : function () {
             this.fps = this.model.get('fps');
 
-            return TrajectoryControls.__super__.update.apply(this);
+            return TrajectoryControlsWidget.__super__.update.apply(this);
         },
 
         play : function () {
@@ -131,6 +145,15 @@ function( widget, $ ) {
             clearInterval(this.playCallbackId);
         },
 
+        fullscreen : function (args) {
+            console.log("Applying fullscreen attached to" + args.model_id);
+            // Getting model 
+            this.model.widget_manager.get_model(args.model_id)
+                .then(function (result) {
+                    console.log(result)
+            });
+        },
+        
         /* We receive custom messages from our python conterpart with DOMWidget.send */
         on_msg: function(msg) {
             if (msg.type == 'callMethod') {
@@ -144,6 +167,6 @@ function( widget, $ ) {
 
 
     return {
-        TrajectoryControls : TrajectoryControls
+        TrajectoryControls : TrajectoryControlsWidget
     };
 });
