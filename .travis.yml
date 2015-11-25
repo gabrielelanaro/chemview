@@ -1,5 +1,9 @@
 language: python
 
+addons:
+  apt:
+    packages:
+      - libosmesa6-dev
 cache:
   directories:
   - ~/.cache/bower
