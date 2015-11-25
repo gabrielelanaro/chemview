@@ -29,6 +29,7 @@
         "enabled" : false,
         "path" : ""
       },
+      
       "desiredCapabilities": {
         "browserName": "firefox",
         "javascriptEnabled": true,
