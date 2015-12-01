@@ -262,7 +262,7 @@ class MolecularViewer(RepresentationViewer):
         if isolevel >= 0:
             triangles = marching_cubes(data, isolevel)
         else:
-            triangle = marching_cubes(-data, -isolevel)
+            triangles = marching_cubes(-data, -isolevel)
         faces = []
         verts = []
         for i, t in enumerate(triangles):
