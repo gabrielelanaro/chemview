@@ -251,3 +251,26 @@ class MolecularViewer(RepresentationViewer):
                                                      'faces': faces.astype('int32'),
                                                      'style': style,
                                                      'color': color})
+
+    def add_isosurface_grid_data(self, data, origin, extent, resolution,
+                                 isolevel=0.3, scale=10,
+                                 style="wireframe", color=0xffffff):
+        """
+        Add an isosurface to current scence using pre-computed data on a grid
+        """
+        spacing = np.array(extent/resolution)/scale
+        if isolevel >= 0:
+            triangles = marching_cubes(data, isolevel)
+        else:
+            triangle = marchingcubes(-data, -isolevel)
+        faces = []
+        verts = []
+        for i, t in enumerate(triangles):
+            faces.append([i * 3, i * 3 +1, i * 3 + 2])
+            verts.extend(t)
+        faces = np.array(faces)
+        verts = origin + spacing/2 + np.array(verts)*spacing
+        rep_id = self.add_representation('surface', {'verts': verts.astype('float32'),
+                                                     'faces': faces.astype('int32'),
+                                                     'style': style,
+                                                     'color': color})
