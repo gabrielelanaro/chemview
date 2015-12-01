@@ -4,7 +4,7 @@ from .utils import get_atom_color
 from .marchingcubes import marching_cubes
 
 
-from IPython.utils.traitlets import Any
+from traitlets import Any
 
 __all__ = ['MolecularViewer']
 # Library-agnostic molecular viewer
@@ -104,7 +104,7 @@ class MolecularViewer(RepresentationViewer):
 
         # Add the cylinders
 
-        if 'bonds' in self.topology:
+        if 'bonds' in self.topology and self.topology['bonds'] is not None:
             start_idx, end_idx = zip(*self.topology['bonds'])
             cylinders = self.add_representation('cylinders', {'startCoords': self.coordinates[list(start_idx)].astype('float32'),
                                                   'endCoords': self.coordinates[list(end_idx)].astype('float32'),

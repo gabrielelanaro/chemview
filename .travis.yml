@@ -1,0 +1,39 @@
+language: python
+
+cache:
+  directories:
+  - ~/.cache/bower
+
+notifications:
+  email: false
+    
+python:
+- 3.5
+- 2.7
+
+sudo: false
+
+install:
+  - npm install -g nightwatch
+  - pip install jupyter numpy matplotlib
+  - pip install .
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - "sleep 3" # give xvfb some time to start
+  - "jupyter notebook --port=8889 &"
+  - "sleep 3" # give xvfb some time to start
+
+script:
+  - nightwatch
+
+deploy:
+  provider: pypi
+  user: gabrielelanaro
+  password:
+    secure: Effv1BoUrealLJ+K9Tro+kedaZuxCTwZkult70Q3ESuWaL9tf5wwgSqzU6SZ4v41mc5tWQ1gakLdzCdsS8OkBHhafwhKP25qgj5b3Fc6lEkb/We/aSs9LpCHU7axw/zxsEdwnLa4IvwysaLhGqnZwxntSbMA4O6hCK5qPaikOMM=
+  on:
+    tags: true
+    repo: gabrielelanaro/chemview
+    branch: webapp
