@@ -225,6 +225,13 @@ define(['widgets/js/widget',
             return MolecularView.__super__.update.apply(this);
         },
 
+        remove: function() {
+            // Cleanup
+            console.log("Calling request animation," + this.mv.requestId);
+            window.cancelAnimationFrame(this.mv.requestId);
+            
+        },
+
         addRepresentation : function (args) {
             var type = args.type,
                 repId = args.repId,
@@ -271,8 +278,11 @@ define(['widgets/js/widget',
                 var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
                 this.mv.zoomInto(options.startCoords);
-            }
-            else {
+            } else if (type == 'ribbon') {
+                var rep = new RibbonRepresentation(options.coordinates, options.normals, options.color, options.numPoints, options.width);
+                this.mv.addRepresentation(rep, repId);
+                this.mv.zoomInto(options.coordinates);
+            } else {
                 console.log("Undefined representation " + type);
             }
 

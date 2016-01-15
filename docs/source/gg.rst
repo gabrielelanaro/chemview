@@ -69,7 +69,17 @@ obtain a color that changes frame by frame.
 Overriding aesthetics
 ---------------------
 
-It is possible
+It is easy to override ``Aes`` values.
+
+.. code:: python
+    gg = ggview(xyz=coordinates, colors=colors1) + GeomPoints(Aes(colors=colors2))
+
+Scales
+------
+
+Scales are useful to display an indication of a certain scale in the data
+(for example colors). Right now only color bar is supported:
+
 
 Theming
 -------
@@ -87,6 +97,3 @@ GeomSpheres()
 GeomBackbone()
 
 GeomCartoon()
-
- 
- 

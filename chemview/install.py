@@ -4,6 +4,7 @@ import os
 import warnings
 from IPython.display import display, Javascript
 from notebook.nbextensions import install_nbextension
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from pkg_resources import resource_filename

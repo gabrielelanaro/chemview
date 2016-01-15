@@ -1,13 +1,35 @@
 """GGplot like interface"""
 import uuid
 
-from .utils import get_atom_color
-from .widget import RepresentationViewer, TrajectoryControls
-
-from IPython.display import display, Image
 import matplotlib as mpl
 import matplotlib.cm as cm
 import numpy as np
+from IPython.display import Image, display
+
+from .utils import get_atom_color
+from .widget import RepresentationViewer, TrajectoryControls
+
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+    def copy(self):
+        return type(self)(self)
+
+class Aes(AttrDict):
+    
+    def __init__(self, *args, **kwargs):
+        super(Aes, self).__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return str(self.copy())
+
+    def updated(self, other):
+        copy = self.copy()
+        copy.update(other)
+        return copy
 
 class ggview(object):
     def __init__(self, aes):
@@ -107,15 +129,27 @@ class ggtraj(ggview):
 
 
 class Geom(object):
-    pass
+    """Base class for all geometric objects"""
+    
+    def __init__(self, aes=Aes()):
+        self.aes = aes
+    
+    def produce(self, aes):
+        raise NotImplementedError()
+
+    def update(self, aes):
+        raise NotImplementedError()
 
 class GeomPoints(Geom):
 
     def produce(self, aes):
+        # If an aes was passed, we override...
+        aes = aes.updated(self.aes)
+
         # Return a dict of primitives produced from aes data
         return [{
                 "rep_id" : uuid.uuid1().hex,
-                'type': "points",
+                'rep_type': "points",
                 "options": { "coordinates": aes.xyz,
                              "colors": process_colors(len(aes.xyz), aes.get("colors", None)),
                              "sizes": process_sizes(len(aes.xyz), aes.get("sizes", 1)),
@@ -129,19 +163,82 @@ class GeomPoints(Geom):
                  "sizes": process_sizes(len(aes.xyz), aes.get("sizes", None)),
                  "visible": aes.get("visible", None) }
 
+
+class GeomSpheres(Geom):
+
+    def produce(self, aes):
+        # If an aes was passed, we override...
+        aes = aes.updated(self.aes)
+
+        # Return a dict of primitives produced from aes data
+        return [{
+                "rep_id" : uuid.uuid1().hex,
+                'rep_type': "spheres",
+                "options": { "coordinates": aes.xyz,
+                             "colors": process_colors(len(aes.xyz), aes.get("colors", None)),
+                             "radii": process_sizes(len(aes.xyz), aes.get("sizes", 1)),
+                             "visible": aes.get("visible", None) }
+                }]
+
+
+
 class GeomLines(Geom):
+
     def produce(self, aes):
         # Return a dict of primitives produced from aes data
+        aes = aes.updated(self.aes)
+        
         xyz = np.array(aes.xyz)
-        return [
-            { "rep_id" : uuid.uuid1().hex,
-              'type': "lines",
-                "options" : {
-                "startCoords": aes.xyz,
-                "colors": aes.colors,
-                "sizes": aes.sizes}
-            }
-        ]
+        edges = np.array(aes.edges, 'uint8')
+        colors = process_colors(len(xyz), aes.get("colors", None))
+        return [{ "rep_id" : uuid.uuid1().hex,
+                  'rep_type': "lines",
+                  "options" : {
+                      "startCoords": np.take(xyz, edges[:, 0], axis=0),
+                      "endCoords": np.take(xyz, edges[:, 1], axis=0),
+                      "startColors": colors,
+                      "endColors": colors}
+                 }]
+
+class GeomCylinders(Geom):
+
+    def produce(self, aes):
+        # Return a dict of primitives produced from aes data
+        aes = aes.updated(self.aes)
+        
+        xyz = np.array(aes.xyz)
+        edges = np.array(aes.edges, 'uint8')
+        colors = process_colors(len(xyz), aes.get("colors", None))
+        return [{ "rep_id" : uuid.uuid1().hex,
+                  'rep_type': "cylinders",
+                  "options" : {
+                      "startCoords": np.take(xyz, edges[:, 0], axis=0),
+                      "endCoords": np.take(xyz, edges[:, 1], axis=0),
+                      "colors": colors,
+                      "radii": process_sizes(len(aes.xyz), aes.get("sizes", None))}
+                 }]
+
+class GeomSurface(Geom):
+    
+    def produce(self, aes):
+        pass
+
+
+class GeomRibbon(Geom):
+    
+    def produce(self, aes):
+        aes = aes.updated(self.aes)
+        
+        xyz = np.array(aes.xyz)
+        normals = np.array(aes.normals)
+        
+        return [{'rep_id': uuid.uuid1().hex,
+                 'rep_type': 'ribbon',
+                 'options': {
+                    'coordinates': xyz,
+                    'normals': normals,
+                    'numPoints': len(xyz) * aes.get("resolution", 4) 
+                 }}]
 
 class Scale(object):
     pass
@@ -182,8 +279,8 @@ class ScaleColorsGradient(Scale):
                                         orientation='horizontal')
         #cb1.set_label('Some Units')
         from IPython.display import display
-        from cStringIO import StringIO
-        data = StringIO()
+        from six import BytesIO
+        data = BytesIO()
         fig.savefig(data, format="png")
         display(Image(data=data.getvalue()))
 
@@ -198,16 +295,17 @@ def process_colors(size, colors, limits=None, palette="YlGnBu"):
     elif isinstance(colors, list) and len(colors) == 0:
         return [0xffffff] * size
     
-    elif isinstance(colors, list) and isinstance(colors[0], str):
+    elif isinstance(colors, list) and isinstance(colors[0], (str, bytes)):
         return [get_atom_color(c) for c in colors]
     
-    elif isinstance(colors, list) and isinstance(colors[0], int):
-        return colors
+    elif isinstance(colors, list) and isinstance(colors[0], (int, np.int32, np.int64, np.int16)):
+        # We cast to 32 bit
+        return [int(c) for c in colors]
     
     elif isinstance(colors, np.ndarray):
         return process_colors(size, colors.tolist(), limits, palette)
     
-    elif isinstance(colors, list) and isinstance(colors[0], float):
+    elif isinstance(colors, list) and isinstance(colors[0], (float, np.float32, np.float64)):
         if limits is None:
              vmin = min(colors)
              vmax = max(colors)
@@ -219,7 +317,7 @@ def process_colors(size, colors, limits=None, palette="YlGnBu"):
         m = cm.ScalarMappable(norm=norm, cmap=cmap)
         return [rgbint_to_hex(c) for c in m.to_rgba(colors, bytes=True)[:, :3]]
     else:
-        raise ValueError("Wrong color format")
+        raise ValueError("Wrong color format : {}".format(type(colors)))
 
 def process_sizes(size, sizes):
     if sizes is None:
@@ -232,18 +330,3 @@ def process_sizes(size, sizes):
         return sizes
     else:
         raise ValueError("Wrong sizes format")
-
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
-    def copy(self):
-        return AttrDict(self)
-class Aes(AttrDict):
-    
-    def __init__(self, *args, **kwargs):
-        super(Aes, self).__init__(*args, **kwargs)
-
-    def __repr__(self):
-        return str(self.copy())

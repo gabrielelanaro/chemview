@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Test</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.js">
+        </script>
+        <script type="text/javascript">
+            requirejs.config({
+
+                shim: {
+                    '/chemview/static/three.min.js' : {
+                        exports : 'THREE'
+                    },
+                    '/chemview/static/ArcballControls.js': {
+                        deps : ['/chemview/static/three.min.js'],
+                        exports : 'THREE.ArcballControls'
+                    },
+                    '/chemview/static/chemview.js' : {
+                        deps : [ '/chemview/static/three.min.js',
+                                 '/chemview/static/ArcballControls.js' ],
+                        exports : 'MolecularViewer'
+                    },
+                    '/chemview/static/context' : {
+                        deps : [ '/chemview/static/jquery-ui.min.js' ],
+                        exports : 'context'
+                    },
+                    '/chemview/static/jquery-ui.min.js': {
+                        exports: "$"
+                    },
+                    '/chemview/static/jquery-2.2.0.min.js': {
+                        exports: "$"
+                    },
+                }
+        });
+        
+        
+        require(['/chemview/static/chemview.js', 
+                 '/chemview/static/jquery-2.2.0.min.js'], 
+                 function (MolecularViewer, $) {
+                     
+                     var ortho = function (a, b) {
+                         return new THREE.Vector3().crossVectors(a.normalize(), b.normalize());
+                     };
+                     
+                     var findNormals = function (positions, atoms) {
+                         var ca = positions.filter((val, i) => atoms[i] === 'CA');
+                         var c = positions.filter((val, i) => atoms[i] === 'C');
+                         var n = positions.filter((val, i) => atoms[i] === 'N');
+                         var o = positions.filter((val, i) => atoms[i] === 'O');
+                         
+                         // We have to find the normals
+                         var c_to_ca = c.map((val, i) => ca[i].clone().sub(val).normalize());
+                         var c_to_o = c.map((val, i) => o[i].clone().sub(val).normalize());
+                         var normals = c_to_o.map((val, i) => ortho(c_to_ca[i], c_to_o[i]));
+                         return normals;                   
+                     };
+                     
+                     
+                     var interpolatePositionNormals = function (points, normals, npoints) {
+                         var pSpline = new THREE.CatmullRomCurve3(points);
+                         var nSpline = new THREE.CatmullRomCurve3(normals);
+                         
+                         var points = pSpline.getPoints(npoints);
+                         var normals = nSpline.getPoints(npoints);
+                         normals = normals.map( x => x.normalize());
+                         return [points, normals];
+                     };
+                     
+                     var realignNormals = function (normals) {
+                         for (var i = 0; i < normals.length -1; i++) {
+                             
+                             if (normals[i].dot(normals[i+1]) < 0) {
+                                 normals[i+1].negate();
+                             }
+                         }
+                     };
+                     
+                     var mv = new MolecularViewer($('#mv'));
+                     var pos = [[5.0319,  6.1656,  6.2008],
+                                [4.9136,  6.0937,  6.1521],
+                                [4.7774,  6.1383,  6.2044],
+                                [4.6813,  6.1474,  6.1282],
+                                [4.7689,  6.1651,  6.3341],
+                                          [4.6437,  6.2086,  6.3947],
+                                          [4.6012,  6.346 ,  6.3437],
+                                          [4.4971,  6.3982,  6.384 ],
+                                          [4.6817,  6.4036,  6.2547],
+                                          [4.6531,  6.5353,  6.1988],
+                                          [4.5698,  6.5289,  6.071 ],
+                                          [4.535 ,  6.6324,  6.0143],
+                                          [4.5378,  6.4082,  6.0256],
+                                          [4.458 ,  6.3924,  5.9044],
+                                          [4.3145,  6.4411,  5.9256],
+                                          [4.2504,  6.4062,  6.0238]];
+                   
+                   var positions = [];
+                   for (var val of pos) {
+                       positions.push(new THREE.Vector3(val[0], val[1], val[2]));
+                   }
+                   
+                   var atoms = ['N', 'CA', 'C', 'O', 'N', 'CA', 'C', 'O', 'N', 'CA', 'C',
+                                'O', 'N', 'CA', 'C', 'O'];
+                   var ca = positions.filter((val, i) => atoms[i] === 'CA');
+                   var c = positions.filter((val, i) => atoms[i] === 'C');
+                   var n = positions.filter((val, i) => atoms[i] === 'N');
+                   var o = positions.filter((val, i) => atoms[i] === 'O');
+                   
+                   // We have to find the normals
+                   var c_to_ca = c.map((val, i) => ca[i].clone().sub(val).normalize());
+                   var c_to_o = c.map((val, i) => o[i].clone().sub(val).normalize());
+                   var normals = c_to_o.map((val, i) => ortho(c_to_ca[i], c_to_o[i]));
+
+                   normals.map( function (val, i) {
+                       mv.scene.add(new THREE.ArrowHelper(val, c[i], 0.1));
+                       mv.scene.add(new THREE.ArrowHelper(c_to_o[i], c[i], 0.1, 0x00ff00));
+                       mv.scene.add(new THREE.ArrowHelper(c_to_ca[i], c[i], 0.1, 0x00ff00));
+                   });
+                   
+                    var meshMaterial = new THREE.MeshNormalMaterial({
+                            shading: THREE.FlatShading,
+                            // transparent: true,
+                            opacity: 1.0
+                        });
+                    realignNormals(normals);
+                    var pnorm = interpolatePositionNormals(ca, normals, 500);
+                    var iPoints = pnorm[0];
+                    var iNormals = pnorm[1];
+                    
+                    // We draw things between C alphas
+                    // for (var i = 0; i < iPoints.length - 1; i++) {
+                    //     var geometry = new THREE.Geometry();
+                    //     var tangent = new THREE.Vector3().subVectors(iPoints[i + 1], iPoints[i]);
+                    //     var side = ortho(tangent, iNormals[i]).multiplyScalar(0.1);
+                    //     var r1 = new THREE.Vector3().addVectors(iPoints[i], side);
+                    //     var l1 = new THREE.Vector3().subVectors(iPoints[i], side);
+                    // 
+                    //     var side2 = ortho(tangent, iNormals[i+1]).multiplyScalar(0.1);
+                    //     var r2 = new THREE.Vector3().addVectors(iPoints[i+1], side2);
+                    //     var l2 = new THREE.Vector3().subVectors(iPoints[i+1], side2);
+                    //     // 
+                    //     geometry.vertices.push(r1, l1, r2, l2);
+                    //     geometry.faces.push(new THREE.Face3( 0, 1, 2, iNormals[i]));
+                    //     geometry.faces.push(new THREE.Face3( 1, 2, 3, iNormals[i]));
+                    //     
+                    //     meshMaterial.side = THREE.DoubleSide;
+                    //     var mesh = new THREE.Mesh(geometry, meshMaterial);
+                    //     mv.scene.add(mesh);
+                    // }
+                    // 
+                    
+                    mv.addRepresentation(new ExtrudePathRepresentation(threeVecsToArray(ca), threeVecsToArray(normals), 32));
+                    mv.controls.staticMoving = false;
+                    mv.zoomInto([4.9136,  6.0937,  6.1521]);
+                    mv.animate();
+                     
+        });
+        </script>
+        
+    </head>
+    <body>
+        <div>
+            <canvas id="mv" width="1200" height="600"></canvas>
+        </div>
+    </body>
+</html>

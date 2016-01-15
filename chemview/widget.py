@@ -106,7 +106,7 @@ class RepresentationViewer(DOMWidget):
         if rep_type in checkers:
             options = checkers[rep_type](options)
 
-        self.representations[rep_id] = {'type' : rep_type,
+        self.representations[rep_id] = {'rep_type' : rep_type,
                                         'options': options.copy()}
 
         self._remote_call('addRepresentation', type=rep_type, repId=rep_id, options=options)
@@ -129,7 +129,7 @@ class RepresentationViewer(DOMWidget):
 
         '''
         self.representations[rep_id]['options'].update(options)
-        rep_type = self.representations[rep_id]["type"]
+        rep_type = self.representations[rep_id]["rep_type"]
         if rep_type in checkers:
             options = checkers[rep_type](options)
         self._remote_call('updateRepresentation', repId=rep_id, options=options)
@@ -231,7 +231,7 @@ class RepresentationViewer(DOMWidget):
         
         """Build a representation from scenedict"""
         for rep in scenedict["representations"]:
-            self.add_representation(rep["type"], rep["options"], rep['rep_id'])
+            self.add_representation(rep["rep_type"], rep["options"], rep['rep_id'])
         return self
             
             

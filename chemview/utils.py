@@ -17,6 +17,25 @@ def encode_numpy(array):
             'type' : array.dtype.name,
             'shape': array.shape}
 
+def beta_sheet_normals(sheet):
+    ca = sheet.sub(atom_name='CA').r_array
+    o = sheet.sub(atom_name='O').r_array
+    c = sheet.sub(atom_name='C').r_array
+
+    c_to_ca = normalized(ca - c)
+    c_to_o = normalized(c - o)
+    
+    normals = np.cross(c_to_ca, c_to_o)
+    # Make sure that angles are less than 90 degrees
+    for i, n in enumerate(normals[1:]):
+        if normals[i].dot(normals[i-1]) < 0:
+            normals[i] *= -1
+    
+    return normals
+
+def normalized(vec):
+    return vec / np.linalg.norm(vec)
+
 def get_atom_color(atom_name):
 
     atomColors = {

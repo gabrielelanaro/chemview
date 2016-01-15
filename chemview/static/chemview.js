@@ -98,9 +98,7 @@ MolecularViewer.prototype = {
     },
 
     animate: function () {
-    	//console.log(this);
-
-		window.requestAnimationFrame(this.animate.bind(this));
+		this.requestId = window.requestAnimationFrame(this.animate.bind(this));
 		this.controls.update();
 
 	},
@@ -244,28 +242,41 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
     if (visible == undefined) {
         var visible = [];
         for (var i=0; i < coordinates.length/3; i++) {
-            visible.push(true);
+            visible.push(1);
         }
     }
 
     // That is the points part
-    var geo = new THREE.Geometry();
+    var geo = new THREE.BufferGeometry();
     this.geometry = geo;
+	
+	var colorsVert = new Float32Array(colors.length * 3);
+	for (var i=0; i < colors.length; i++) {
+		var c = new THREE.Color(colors[i]);
+		colorsVert[3*i] = c.r;
+		colorsVert[3*i+1] = c.g;
+		colorsVert[3*i+2] = c.b;
+	}
+	
+	geo.addAttribute('position', new THREE.BufferAttribute(coordinates, 3));
+	geo.addAttribute('color', new THREE.BufferAttribute(colorsVert, 3));
+	geo.addAttribute('pointSize', new THREE.BufferAttribute(new Float32Array(sizes), 1));
+	geo.addAttribute('visible', new THREE.BufferAttribute(new Float32Array(visible), 1));
 
-    var attributes = {
-        color: { type: 'c', value: []},
-        pointSize: { type: 'f', value: sizes},
-		visible: { type: "i", value: visible }
-    };
+    // var attributes = {
+    //     color: { type: 'c', value: []},
+    //     pointSize: { type: 'f', value: sizes},
+	// 	visible: { type: "i", value: visible }
+    // };
 
 
-    for (var p = 0; p < coordinates.length/3; p++) {
-        var particle = new THREE.Vector3(coordinates[3 * p + 0],
-                                         coordinates[3 * p + 1],
-                                         coordinates[3 * p + 2]);
-        geo.vertices.push(particle);
-        attributes.color.value.push(new THREE.Color(colors[p]));
-    }
+    // for (var p = 0; p < coordinates.length/3; p++) {
+    //     var particle = new THREE.Vector3(coordinates[3 * p + 0],
+    //                                      coordinates[3 * p + 1],
+    //                                      coordinates[3 * p + 2]);
+    //     geo.vertices.push(particle);
+    //     attributes.color.value.push(new THREE.Color(colors[p]));
+    // }
 
 
     var vertex_shader = "\
@@ -295,7 +306,6 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
 
 
     var shaderMaterial = new THREE.ShaderMaterial( {
-        attributes: attributes,
         uniforms: {'scale': { 'type': 'f',
                               'value': 250} },
         vertexShader:   vertex_shader,
@@ -303,13 +313,12 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
         transparent:    false
     });
     this.material = shaderMaterial;
-
     // This is a parameter we need to scale things properly
     // https://github.com/mrdoob/three.js/blob/2d59713328c421c3edfc3feda1b116af13140b94/src/renderers/WebGLRenderer.js
     // uniforms.scale.value = _canvas.height / 2.0;
 
 
-    this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
+    this.particleSystem = new THREE.Points(this.geometry, shaderMaterial);
 
     this.update = function (options) {
         var coordinates = options.coordinates;
@@ -910,6 +919,106 @@ CylinderRepresentation.deserialize = function (json) {
                                       deserialize_array(json.options.radii),
                                       deserialize_array(json.options.colors),
                                       json.options.resolution);
+};
+
+
+var RibbonRepresentation = function (coords, normals, color, numPoints, width) {
+    // Get arrays of THREE.Vector3 objects 
+	coords = arrayToThreeVecs(coords);
+	normals = arrayToThreeVecs(normals);
+
+	// Make splines
+	var pSpline = new THREE.CatmullRomCurve3(coords);
+	var nSpline = new THREE.CatmullRomCurve3(normals);
+
+	// Interpolate points and normals
+	var iPoints = pSpline.getPoints(numPoints);
+	var iNormals = nSpline.getPoints(numPoints);
+	
+	// Renormalize normals 
+	iNormals.map( function(x) {x.normalize()} );
+	realignNormals(iNormals);
+	
+	if (numPoints == undefined)
+		numPoints = 4
+	
+	if (width == undefined)
+		width = 0.2
+	
+	if (color == undefined)
+		color = 0xffffff
+	
+	var geometry = new THREE.Geometry();
+	
+	// Generate vertices
+	
+	for (var i = 0; i < iPoints.length - 1; i++) {
+		var tangent = new THREE.Vector3().subVectors(iPoints[i + 1], iPoints[i]);
+		var sideDirection = orthogonalVec(tangent, iNormals[i]).normalize().multiplyScalar(width/2);
+		var r1 = new THREE.Vector3().addVectors(iPoints[i], sideDirection);
+		var l1 = new THREE.Vector3().subVectors(iPoints[i], sideDirection);
+		
+		geometry.vertices.push(r1, l1);
+	}
+	console.log(geometry.vertices.length);
+	// Connect the previously generated vertices through a triangle strip
+	for (var i=0; i < iPoints.length * 2 - 4; i += 2) {
+		geometry.faces.push(new THREE.Face3(i, i+2, i+1, iNormals[i]));
+		geometry.faces.push(new THREE.Face3(i+1, i+2, i+3, iNormals[i]));
+		// console.log(i);
+	}
+	
+	geometry.computeFaceNormals();
+	geometry.computeVertexNormals();
+	var material = new THREE.MeshPhongMaterial({ color: color, 
+		                                         side: THREE.DoubleSide});
+	var mesh2 = new THREE.Mesh(geometry, material);
+	var mesh = new THREE.Points(geometry, new THREE.PointsMaterial({color: color, size:0.01}))
+	this.addToScene = function(scene) {
+        scene.add(mesh);
+        scene.add(mesh2);
+    };
+
+    this.removeFromScene = function(scene) {
+        scene.remove(mesh);
+    };
+
+    this.update = function (options) {
+	};
+};
+
+
+var orthogonalVec = function (a, b) {
+	return new THREE.Vector3().crossVectors(a.clone().normalize(), b.clone().normalize());
+};
+
+var threeVecsToArray = function (vectors) {
+	var coords = [];
+	for (var v of vectors){
+		coords.push(v.x, v.y, v.z);
+	}
+	return new Float32Array(coords);
+};
+
+var arrayToThreeVecs = function (array) {
+	var retVal = [];
+	
+	for (var i=0; i < array.length/3; i++) {
+		retVal.push(new THREE.Vector3(array[3*i + 0],
+									  array[3*i + 1],
+									  array[3*i + 2]));
+	}
+	
+	return retVal;
+};
+
+var realignNormals = function (normals) {
+	for (var i = 0; i < normals.length -1; i++) {
+		
+		if (normals[i].dot(normals[i+1]) < 0) {
+			normals[i+1].negate();
+		}
+	}
 };
 
 // Utilities
