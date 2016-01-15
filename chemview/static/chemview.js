@@ -263,22 +263,6 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
 	geo.addAttribute('pointSize', new THREE.BufferAttribute(new Float32Array(sizes), 1));
 	geo.addAttribute('visible', new THREE.BufferAttribute(new Float32Array(visible), 1));
 
-    // var attributes = {
-    //     color: { type: 'c', value: []},
-    //     pointSize: { type: 'f', value: sizes},
-	// 	visible: { type: "i", value: visible }
-    // };
-
-
-    // for (var p = 0; p < coordinates.length/3; p++) {
-    //     var particle = new THREE.Vector3(coordinates[3 * p + 0],
-    //                                      coordinates[3 * p + 1],
-    //                                      coordinates[3 * p + 2]);
-    //     geo.vertices.push(particle);
-    //     attributes.color.value.push(new THREE.Color(colors[p]));
-    // }
-
-
     var vertex_shader = "\
         uniform float scale;\
         attribute vec3 color;\
@@ -322,36 +306,26 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
 
     this.update = function (options) {
         var coordinates = options.coordinates;
-
-        if (options.coordinates != undefined) {
-            // There has been no update in coordinates
-            for (var p=0; p < coordinates.length/3; p++) {
-                this.geometry.vertices[p].x = coordinates[3 * p + 0];
-                this.geometry.vertices[p].y = coordinates[3 * p + 1];
-                this.geometry.vertices[p].z = coordinates[3 * p + 2];
-            }
-
-            this.particleSystem.geometry.verticesNeedUpdate = true;
-        }
-
+		
+		if (options.coordinates != undefined) {
+			this.geometry.attributes.position.array = coordinates;
+			this.geometry.attributes.position.needsUpdate = true;
+		}
+		
         if (options.colors != undefined) {
-			var threeColors = _.map(options.colors, function ( hexInt ) { return new THREE.Color(hexInt) } )
-            this.particleSystem.material.attributes.color.value = threeColors;
-            this.particleSystem.material.attributes.color.needsUpdate = true;
+			this.geometry.attributes.color.array = hexColorsToArray(options.colors);
+			this.geometry.attributes.color.needsUpdate = true;
         }
 		
         if (options.sizes != undefined) {
-            this.particleSystem.material.attributes.pointSize.value = options.sizes;
-            this.particleSystem.material.attributes.pointSize.needsUpdate = true;
+			this.geometry.attributes.pointSize.array = new Float32Array(options.sizes);
+			this.geometry.attributes.pointSize.needsUpdate = true;
         }
         
 		if (options.visible != undefined) {
-            this.particleSystem.material.attributes.visible.value = options.visible;
-            this.particleSystem.material.attributes.visible.needsUpdate = true;
+			this.geometry.attributes.visible.array = new Float32Array(options.visible);
+			this.geometry.attributes.visible.needsUpdate = true;
         }
-		
-		
-
     };
 
     this.addToScene = function(scene) {
@@ -1010,6 +984,17 @@ var arrayToThreeVecs = function (array) {
 	}
 	
 	return retVal;
+};
+
+var hexColorsToArray = function (colors) {
+	var colorsVert = new Float32Array(colors.length * 3);
+	for (var i=0; i < colors.length; i++) {
+		var c = new THREE.Color(colors[i]);
+		colorsVert[3*i] = c.r;
+		colorsVert[3*i+1] = c.g;
+		colorsVert[3*i+2] = c.b;
+	}
+	return colorsVert;
 };
 
 var realignNormals = function (normals) {
