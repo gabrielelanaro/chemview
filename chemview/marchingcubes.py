@@ -11,6 +11,38 @@ except ImportError:
         ImportWarning)
     numba_present = False
 
+
+def isosurface_from_function(function, extents=[[-1, 1], [-1, 1], [-1, 1]], 
+                                       isolevel=0.3, resolution=32):
+    area_min, area_max = np.array(extents).T
+    spacing = (area_max - area_min)/resolution
+    
+    x = np.linspace(area_min[0], area_max[0], resolution)
+    y = np.linspace(area_min[1], area_max[1], resolution)
+    z = np.linspace(area_min[2], area_max[2], resolution)
+    xv, yv, zv = np.meshgrid(x, y, z)
+    
+    return isosurface_from_data(function(xv, yv, zv), isolevel, 
+                                  area_min, spacing)
+
+def isosurface_from_data(data, isolevel, origin, spacing):
+    """Small wrapper to get directly vertices and faces to feed into programs
+    """
+    spacing = np.array(extent/resolution)
+    if isolevel >= 0:
+        triangles = marching_cubes(data, isolevel)
+    else: # Wrong traingle unwinding roder -- god only knows why
+        triangles = marching_cubes(-data, -isolevel)
+    faces = []
+    verts = []
+    for i, t in enumerate(triangles):
+       faces.append([i * 3, i * 3 +1, i * 3 + 2])
+       verts.extend(t)
+       
+    faces = np.array(faces)
+    verts = origin + spacing/2 + np.array(verts)*spacing
+    return verts, faces
+
 def marching_cubes(field, isolevel):
     # The field is like gridpoints, and gridpoints define cubes.
     triangles = []
