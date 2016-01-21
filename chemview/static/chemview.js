@@ -896,10 +896,13 @@ CylinderRepresentation.deserialize = function (json) {
 };
 
 
-var RibbonRepresentation = function (coords, normals, color, numPoints, width) {
+var RibbonRepresentation = function (coords, normals, color, resolution, width, height,
+                                     arrow) {
     // Get arrays of THREE.Vector3 objects 
 	coords = arrayToThreeVecs(coords);
 	normals = arrayToThreeVecs(normals);
+	
+	var numPoints = resolution * coords.length;
 
 	// Make splines
 	var pSpline = new THREE.CatmullRomCurve3(coords);
@@ -913,32 +916,77 @@ var RibbonRepresentation = function (coords, normals, color, numPoints, width) {
 	iNormals.map( function(x) {x.normalize()} );
 	realignNormals(iNormals);
 	
-	if (numPoints == undefined)
-		numPoints = 4
 	
 	if (width == undefined)
 		width = 0.2
 	
 	if (color == undefined)
 		color = 0xffffff
+		
+	if (height == undefined)
+		height = 0.05
+
+	if (arrow == undefined)
+		arrow = false
+	
+	
+	// We need to add an extra point to make room for the arrow transition
+	// TODO: normal is not right
+	// if (arrow) {
+	// 	var arrowHeadStartIndex = iPoints.length - resolution + 1;
+	// 	iPoints.splice(arrowHeadStartIndex, 0, iPoints[arrowHeadStartIndex]);
+	// 	iNormals.splice(arrowHeadStartIndex, 0, iNormals[arrowHeadStartIndex]);
+	// 	
+	// }
+	
+	// iPoints[iPoints.length] = iPoints[iPoints.length - 1];
+	// iNormals[iNormals.length] = iNormals[iNormals.length - 1];
 	
 	var geometry = new THREE.Geometry();
-	
+
 	// Generate vertices
-	
 	for (var i = 0; i < iPoints.length - 1; i++) {
-		var tangent = new THREE.Vector3().subVectors(iPoints[i + 1], iPoints[i]);
-		var sideDirection = orthogonalVec(tangent, iNormals[i]).normalize().multiplyScalar(width/2);
+		
+		if (arrow) {
+			//  We interpolate the width to 0
+			
+			var offset = i + resolution - iPoints.length;
+			var iWidth = offset < 0 ? width : width * 2.0;
+			iWidth = iWidth * (1 - Math.max(0, offset)/resolution);
+			console.log(iWidth, offset);
+		}
+		else {
+			var iWidth = width; 
+		}
+		
+		var tangent = new THREE.Vector3().subVectors(iPoints[i + 1], iPoints[i]).normalize();		
+		var sideDirection = orthogonalVec(tangent, iNormals[i]).normalize().multiplyScalar(iWidth/2);
 		var r1 = new THREE.Vector3().addVectors(iPoints[i], sideDirection);
 		var l1 = new THREE.Vector3().subVectors(iPoints[i], sideDirection);
 		
+		var upDirection = orthogonalVec(sideDirection, tangent).multiplyScalar(height);
+		var r2 = new THREE.Vector3().addVectors(r1, upDirection);
+		var l2 = new THREE.Vector3().addVectors(l1, upDirection);
+			
+		// Bottom ribbon
 		geometry.vertices.push(r1, l1);
+		
+		// Top ribbon
+		geometry.vertices.push(r2, l2)
 	}
-	console.log(geometry.vertices.length);
+
+	var trianglesTpl = [[0, 5, 4], [0, 1, 5], // Bottom face
+	[3, 7, 2], [2, 7, 6], // Top face
+	[1, 7, 3], [1, 5, 7], // Left
+	[0, 6, 2], [0, 4, 6], // Right
+];
 	// Connect the previously generated vertices through a triangle strip
-	for (var i=0; i < iPoints.length * 2 - 4; i += 2) {
-		geometry.faces.push(new THREE.Face3(i, i+2, i+1, iNormals[i]));
-		geometry.faces.push(new THREE.Face3(i+1, i+2, i+3, iNormals[i]));
+	for (var i=0; i < iPoints.length * 4 - 16; i += 2) {
+		// geometry.faces.push(new THREE.Face3(i, i+2, i+1, iNormals[i]));
+		// geometry.faces.push(new THREE.Face3(i+1, i+2, i+3, iNormals[i]));
+		for (var t of trianglesTpl)
+			geometry.faces.push(new THREE.Face3(i + t[0], i + t[1], i+t[2]));
+		
 		// console.log(i);
 	}
 	
@@ -947,9 +995,14 @@ var RibbonRepresentation = function (coords, normals, color, numPoints, width) {
 	var material = new THREE.MeshPhongMaterial({ color: color, 
 		                                         side: THREE.DoubleSide});
 	var mesh2 = new THREE.Mesh(geometry, material);
-	var mesh = new THREE.Points(geometry, new THREE.PointsMaterial({color: color, size:0.01}))
+	
 	this.addToScene = function(scene) {
-        scene.add(mesh);
+		// Display normals
+		// for (var i=0; i < coords.length; i++) {
+		// 	scene.add(new THREE.ArrowHelper(normals[i], coords[i], 0.1));
+		// }
+		
+        // scene.add(mesh);
         scene.add(mesh2);
     };
 

@@ -279,7 +279,8 @@ define(['widgets/js/widget',
                 this.mv.addRepresentation(rep, repId);
                 this.mv.zoomInto(options.startCoords);
             } else if (type == 'ribbon') {
-                var rep = new RibbonRepresentation(options.coordinates, options.normals, options.color, options.numPoints, options.width);
+                var rep = new RibbonRepresentation(options.coordinates, options.normals, options.color, 
+                                                   options.resolution, options.width, options.height, options.arrow);
                 this.mv.addRepresentation(rep, repId);
                 this.mv.zoomInto(options.coordinates);
             } else {
@@ -314,6 +315,11 @@ define(['widgets/js/widget',
             this.mv.render();
         },
 
+        zoomInto: function (args) {
+            this.mv.zoomInto(args.coordinates);
+            this.mv.render();
+        },
+        
         ndarrayToTypedArray: function (array) {
             var buffer = decode(array['data']);
 

@@ -226,6 +226,12 @@ class GeomSurface(Geom):
 
 class GeomRibbon(Geom):
     
+    def __init__(self, aes, color=0xffffff, width=0.2, arrow=False):
+        super(GeomRibbon, self).__init__(aes)
+        self.color = color
+        self.width = width
+        self.arrow = arrow
+    
     def produce(self, aes):
         aes = aes.updated(self.aes)
         
@@ -237,7 +243,10 @@ class GeomRibbon(Geom):
                  'options': {
                     'coordinates': xyz,
                     'normals': normals,
-                    'numPoints': len(xyz) * aes.get("resolution", 4) 
+                    'resolution': aes.get("resolution", 4),
+                    'color': self.color,
+                    'width': self.width,
+                    'arrow': self.arrow
                  }}]
 
 class Scale(object):
