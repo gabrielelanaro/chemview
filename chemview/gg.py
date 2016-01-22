@@ -223,6 +223,138 @@ class GeomSurface(Geom):
     def produce(self, aes):
         pass
 
+from numpy.lib.stride_tricks import as_strided
+
+def pairs(a):
+    """Return array of pairs of adjacent elements in a.
+
+    >>> pairs([1, 2, 3, 4])
+    array([[1, 2],
+           [2, 3],
+           [3, 4]])
+
+    """
+    a = np.asarray(a)
+    return as_strided(a, shape=(a.size - 1, 2), strides=a.strides * 2)
+
+def groupby_ix(a):
+    p = pairs(a)
+    diff_ix = np.nonzero(p[:, 0] != p[:, 1])[0]
+    starts_ix = np.append(np.insert(diff_ix + 1, 0, 0), a.shape[0])
+    
+    return pairs(starts_ix)
+
+class GeomProteinCartoon(Geom):
+    
+    def __init__(self, aes):
+        super(GeomProteinCartoon, self).__init__(aes)
+        
+        # It is necessary to have
+        # aes.xyz (Coordinates)
+        # aes.types (Atom types)
+        # aes.secondary (secondary structure)
+        
+    
+    def produce(self, aes):
+        aes = aes.updated(self.aes)
+        
+        primitives = []
+        
+        for xyz, normals in zip(*self._extract_helix_coords_normals(aes)):
+            g_helices = GeomRibbon(Aes(xyz=xyz, normals=normals), color=0xff0000)
+            primitives.extend(g_helices.produce(Aes()))
+        
+        for xyz, normals in zip(*self._extract_sheet_coords_normals(aes)):
+            g_sheets = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=16), 
+                                  arrow=True, color=0x00ffff)
+            primitives.extend(g_sheets.produce(Aes()))
+
+        for xyz in self._extract_coil_coords(aes):
+            g_coils = GeomLines(Aes(xyz=xyz, edges=pairs(range(len(xyz)))))
+            primitives.extend(g_coils.produce(Aes()))
+        
+        return primitives
+    
+    def _extract_helix_coords_normals(self, aes):
+        # First, extract the helices from the secondary
+        groups_ix = groupby_ix(aes.secondary_id)
+        helices_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'H']
+        
+        backbone_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in helices_ix] 
+        normals_list = [alpha_helix_normals(backbone) for backbone in backbone_list]
+        
+        return backbone_list, normals_list
+
+    def _extract_sheet_coords_normals(self, aes):
+        groups_ix = groupby_ix(aes.secondary_id)
+        sheets_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'S']
+        
+        ca_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in sheets_ix] 
+        c_list = [aes.xyz[aes.types == 'C'][i:j] for i, j in sheets_ix] 
+        o_list = [aes.xyz[aes.types == 'O'][i:j] for i, j in sheets_ix] 
+        
+        normals_list = [beta_sheet_normals(ca, c, o) for ca, c, o in zip(ca_list, c_list, o_list)]
+        
+        return ca_list, normals_list
+
+    def _extract_coil_coords(self, aes):
+        groups_ix = groupby_ix(aes.secondary_id)
+        coils_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'C']
+        
+        # We remove id = 0 because they are heteroatoms
+        coils_id = aes.secondary_id[coils_ix[:, 0]]
+        coils_ix = coils_ix[coils_id != 0, :]
+        
+        coils_ix[:, 1] += 1
+        coils_ix[:, 0] -= 1
+        coils_ix[coils_ix > len(aes.secondary_type)] = len(aes.secondary_type)
+        coils_ix[coils_ix < 0] = 0
+        
+        backbone_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in coils_ix]
+        return backbone_list
+
+from chemview.utils import normalized, beta_sheet_normals
+
+def alpha_helix_normals(ca):
+    K_AVG = 5
+    K_OFFSET = 2
+    
+    if len(ca) <= K_AVG:
+        start = ca[0]
+        end = ca[-1]
+        helix_dir = normalized(end - start)
+        
+        position = ca - start
+        projected_pos = np.array([np.dot(r, helix_dir) * helix_dir for r in position]) 
+        normals = normalized(position - projected_pos)
+        return [start] * len(normals), [end] * len(normals), normals
+    
+    # Start and end point for normals
+    starts = []
+    ends = []
+    
+
+    for i in range(len(ca) - K_AVG):
+        starts.append(ca[i:i + K_AVG - K_OFFSET].mean(axis=0))
+        ends.append(ca[i+K_OFFSET:i + K_AVG].mean(axis=0))
+        
+    starts = np.array(starts)
+    ends = np.array(ends)
+    
+    # position relative to "start point"
+    normals = []
+    for i,r in enumerate(ca):
+        k = i if i < len(ca) - K_AVG else -1
+        position = r - starts[k]
+        # Find direction of the helix
+        helix_dir = normalized(ends[k] - starts[k])
+        # Project positions on the helix
+        
+        projected_pos = np.dot(position, helix_dir) * helix_dir        
+        normals.append(normalized(position - projected_pos))
+
+
+    return np.array(normals)
 
 class GeomRibbon(Geom):
     

@@ -1,5 +1,5 @@
 from __future__ import print_function
-from chemview.gg import ggview, Aes, GeomPoints, GeomLines, GeomSpheres, GeomCylinders, ggtraj, GeomRibbon
+from chemview.gg import ggview, Aes, GeomPoints, GeomLines, GeomSpheres, GeomCylinders, ggtraj, GeomRibbon, GeomProteinCartoon
 import numpy as np
 from nose.tools import eq_
 from chemview.utils import beta_sheet_normals, normalized
@@ -67,8 +67,6 @@ def test_geom_cylinders():
 #                         bounds=[[-1, 1], [-1, 1], [-1, 1]],
 #                         resolution=[32, 32, 32])
 
-
-
 def test_geom_ribbon():
     # For this test we need chemlab
     from chemlab.io import datafile
@@ -83,4 +81,20 @@ def test_geom_ribbon():
     eq_(reps[0]['rep_type'], 'ribbon')
     npeq_(reps[0]['options']['coordinates'], coordinates)
     npeq_(reps[0]['options']['normals'], normals)
+
+def test_geom_cartoon():
+    # For this test we need chemlab
+    from chemlab.io import datafile
+    system = datafile('tests/data/pdb1g8p.ent', format='pdb').read('system')
+    
+    cartoon = GeomProteinCartoon(Aes(xyz=system.r_array, 
+                                     types=system.atom_name,
+                                     secondary_id=system.secondary_id,
+                                     secondary_type=system.secondary_structure))
+    
+    reps = cartoon.produce(Aes())
+    
+    eq_(reps[0]['rep_type'], 'ribbon')
+    # npeq_(reps[0]['options']['coordinates'], coordinates)
+    # npeq_(reps[0]['options']['normals'], normals)
     

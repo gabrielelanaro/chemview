@@ -17,10 +17,7 @@ def encode_numpy(array):
             'type' : array.dtype.name,
             'shape': array.shape}
 
-def beta_sheet_normals(sheet):
-    ca = sheet.sub(atom_name='CA').r_array
-    o = sheet.sub(atom_name='O').r_array
-    c = sheet.sub(atom_name='C').r_array
+def beta_sheet_normals(ca, c, o):
 
     c_to_ca = normalized(ca - c)
     c_to_o = normalized(c - o)
