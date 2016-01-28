@@ -227,7 +227,8 @@ define(['widgets/js/widget',
 
         remove: function() {
             // Cleanup
-            console.log("Calling request animation," + this.mv.requestId);
+            // console.log("Cleaning up" + this.mv.requestId);
+            console.log("calling remove");
             window.cancelAnimationFrame(this.mv.requestId);
             
         },

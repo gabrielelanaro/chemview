@@ -63,3 +63,9 @@ Optional: startColors, endColors, radii
   - **alpha**: ``list(float32)`` transparency level
  
 Optional: colors, alpha
+
+**smoothtube**:
+  - **coordinates**: ``array(float32, shape=(n, 3))`` control points for the tube
+  - **radius**: ``int`` width of the tube
+  - **color**: ``uint8`` color of the tube
+  - **resolution**: ``int`` how many segments to use to smooth the tube

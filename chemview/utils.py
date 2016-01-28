@@ -30,6 +30,47 @@ def beta_sheet_normals(ca, c, o):
     
     return normals
 
+def alpha_helix_normals(ca):
+    K_AVG = 5
+    K_OFFSET = 2
+    
+    if len(ca) <= K_AVG:
+        start = ca[0]
+        end = ca[-1]
+        helix_dir = normalized(end - start)
+        
+        position = ca - start
+        projected_pos = np.array([np.dot(r, helix_dir) * helix_dir for r in position]) 
+        normals = normalized(position - projected_pos)
+        return [start] * len(normals), [end] * len(normals), normals
+    
+    # Start and end point for normals
+    starts = []
+    ends = []
+    
+
+    for i in range(len(ca) - K_AVG):
+        starts.append(ca[i:i + K_AVG - K_OFFSET].mean(axis=0))
+        ends.append(ca[i+K_OFFSET:i + K_AVG].mean(axis=0))
+        
+    starts = np.array(starts)
+    ends = np.array(ends)
+    
+    # position relative to "start point"
+    normals = []
+    for i,r in enumerate(ca):
+        k = i if i < len(ca) - K_AVG else -1
+        position = r - starts[k]
+        # Find direction of the helix
+        helix_dir = normalized(ends[k] - starts[k])
+        # Project positions on the helix
+        
+        projected_pos = np.dot(position, helix_dir) * helix_dir        
+        normals.append(normalized(position - projected_pos))
+
+
+    return np.array(normals)
+
 def normalized(vec):
     return vec / np.linalg.norm(vec)
 

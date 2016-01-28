@@ -194,7 +194,6 @@ MolecularViewer.prototype = {
 
 
         for (var key in json.representations) {
-            console.log(json.representations[key]);
             var rep = representationMap[json.representations[key].type].deserialize(json.representations[key]);
             this.addRepresentation(rep, key);
           };
@@ -393,7 +392,7 @@ var LineRepresentation = function (startCoords, endCoords, startColors, endColor
             vertexColors: THREE.VertexColors,
     });
 
-    this.lines = new THREE.Line(geo, material, THREE.LinePieces);
+    this.lines = new THREE.LineSegments(geo, material);
     this.lines.geometry.dynamic = true;
 
     this.update = function (options) {
@@ -953,7 +952,6 @@ var RibbonRepresentation = function (coords, normals, color, resolution, width, 
 			var offset = i + resolution - iPoints.length;
 			var iWidth = offset < 0 ? width : width * 2.0;
 			iWidth = iWidth * (1 - Math.max(0, offset)/resolution);
-			console.log(iWidth, offset);
 		}
 		else {
 			var iWidth = width; 
@@ -986,8 +984,6 @@ var RibbonRepresentation = function (coords, normals, color, resolution, width, 
 		// geometry.faces.push(new THREE.Face3(i+1, i+2, i+3, iNormals[i]));
 		for (var t of trianglesTpl)
 			geometry.faces.push(new THREE.Face3(i + t[0], i + t[1], i+t[2]));
-		
-		// console.log(i);
 	}
 	
 	geometry.computeFaceNormals();

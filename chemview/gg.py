@@ -258,19 +258,35 @@ class GeomProteinCartoon(Geom):
     def produce(self, aes):
         aes = aes.updated(self.aes)
         
+        # Check if secondary_id is present, if not we generate a reasonable one
+        if not 'secondary_id' in aes:
+            pairs_ = groupby_ix(aes.secondary_type)
+            secondary_id = np.zeros_like(aes.secondary_type, dtype='int')
+            for k, (i,j) in enumerate(pairs_):
+                secondary_id[i:j] = k + 1
+            
+            aes['secondary_id'] = secondary_id
+        aes['types'] = np.array(aes.types)
+        
+        # print(secondary_id)
+        # print(aes.secondary_type)
+        # print(aes.types)
+        # print(np.count_nonzero(aes.types == 'CA'))
+        # print(len(aes.secondary_type))
         primitives = []
         
         for xyz, normals in zip(*self._extract_helix_coords_normals(aes)):
-            g_helices = GeomRibbon(Aes(xyz=xyz, normals=normals), color=0xff0000)
+            g_helices = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=32), color=0xff0000)
             primitives.extend(g_helices.produce(Aes()))
         
         for xyz, normals in zip(*self._extract_sheet_coords_normals(aes)):
-            g_sheets = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=16), 
+            g_sheets = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=32), 
                                   arrow=True, color=0x00ffff)
             primitives.extend(g_sheets.produce(Aes()))
 
         for xyz in self._extract_coil_coords(aes):
-            g_coils = GeomLines(Aes(xyz=xyz, edges=pairs(range(len(xyz)))))
+            # g_coils = GeomLines(Aes(xyz=xyz, edges=pairs(range(len(xyz)))))
+            g_coils = GeomTube(Aes(xyz=xyz))
             primitives.extend(g_coils.produce(Aes()))
         
         return primitives
@@ -279,19 +295,18 @@ class GeomProteinCartoon(Geom):
         # First, extract the helices from the secondary
         groups_ix = groupby_ix(aes.secondary_id)
         helices_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'H']
-        
-        backbone_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in helices_ix] 
+        backbone_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in helices_ix if j - i] 
         normals_list = [alpha_helix_normals(backbone) for backbone in backbone_list]
         
         return backbone_list, normals_list
 
     def _extract_sheet_coords_normals(self, aes):
         groups_ix = groupby_ix(aes.secondary_id)
-        sheets_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'S']
+        sheets_ix = groups_ix[aes.secondary_type[groups_ix[:, 0]] == 'E']
         
-        ca_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in sheets_ix] 
-        c_list = [aes.xyz[aes.types == 'C'][i:j] for i, j in sheets_ix] 
-        o_list = [aes.xyz[aes.types == 'O'][i:j] for i, j in sheets_ix] 
+        ca_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in sheets_ix if j - i] 
+        c_list = [aes.xyz[aes.types == 'C'][i:j] for i, j in sheets_ix if j - i] 
+        o_list = [aes.xyz[aes.types == 'O'][i:j] for i, j in sheets_ix if j - i] 
         
         normals_list = [beta_sheet_normals(ca, c, o) for ca, c, o in zip(ca_list, c_list, o_list)]
         
@@ -313,48 +328,9 @@ class GeomProteinCartoon(Geom):
         backbone_list = [aes.xyz[aes.types == 'CA'][i:j] for i, j in coils_ix]
         return backbone_list
 
-from chemview.utils import normalized, beta_sheet_normals
-
-def alpha_helix_normals(ca):
-    K_AVG = 5
-    K_OFFSET = 2
-    
-    if len(ca) <= K_AVG:
-        start = ca[0]
-        end = ca[-1]
-        helix_dir = normalized(end - start)
-        
-        position = ca - start
-        projected_pos = np.array([np.dot(r, helix_dir) * helix_dir for r in position]) 
-        normals = normalized(position - projected_pos)
-        return [start] * len(normals), [end] * len(normals), normals
-    
-    # Start and end point for normals
-    starts = []
-    ends = []
-    
-
-    for i in range(len(ca) - K_AVG):
-        starts.append(ca[i:i + K_AVG - K_OFFSET].mean(axis=0))
-        ends.append(ca[i+K_OFFSET:i + K_AVG].mean(axis=0))
-        
-    starts = np.array(starts)
-    ends = np.array(ends)
-    
-    # position relative to "start point"
-    normals = []
-    for i,r in enumerate(ca):
-        k = i if i < len(ca) - K_AVG else -1
-        position = r - starts[k]
-        # Find direction of the helix
-        helix_dir = normalized(ends[k] - starts[k])
-        # Project positions on the helix
-        
-        projected_pos = np.dot(position, helix_dir) * helix_dir        
-        normals.append(normalized(position - projected_pos))
+from chemview.utils import normalized, beta_sheet_normals, alpha_helix_normals
 
 
-    return np.array(normals)
 
 class GeomRibbon(Geom):
     
@@ -380,6 +356,29 @@ class GeomRibbon(Geom):
                     'width': self.width,
                     'arrow': self.arrow
                  }}]
+
+
+class GeomTube(Geom):
+    
+    def __init__(self, aes, color=0xffffff, radius=0.05, resolution=4):
+        super(GeomTube, self).__init__(aes)
+        self.color = color
+        self.radius = radius
+        self.resolution = 4
+        
+    def produce(self, aes):
+        aes = aes.updated(self.aes)
+        
+        xyz = np.array(aes.xyz)
+        
+        return [{'rep_id': uuid.uuid1().hex,
+                'rep_type': 'smoothtube',
+                'options': {
+                    'coordinates': xyz,
+                    'resolution': self.resolution,
+                    'color': self.color,
+                    'radius': self.radius
+                }}]
 
 class Scale(object):
     pass
