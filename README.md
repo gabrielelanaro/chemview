@@ -1,5 +1,7 @@
 # chemview
 
+[![Join the chat at https://gitter.im/gabrielelanaro/chemview](https://badges.gitter.im/gabrielelanaro/chemview.svg)](https://gitter.im/gabrielelanaro/chemview?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Documentation Status](https://readthedocs.org/projects/chemview/badge/?version=latest)](https://readthedocs.org/projects/chemview/?badge=latest)
 [![Build Status](https://travis-ci.org/gabrielelanaro/chemview.svg?branch=master)](https://travis-ci.org/gabrielelanaro/chemview)
 
