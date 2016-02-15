@@ -32,7 +32,7 @@ class Aes(AttrDict):
         return copy
 
 class ggview(object):
-    def __init__(self, aes):
+    def __init__(self, aes=Aes()):
         self.aes = aes
         self.geometries = []
         self.scales = []
@@ -69,7 +69,7 @@ class ggview(object):
 
 class ggtraj(ggview):
     
-    def __init__(self, frames, aes):
+    def __init__(self, frames, aes=Aes()):
         frame_aes = ggtraj._make_frame_aes(aes, 0)
         super(ggtraj, self).__init__(frame_aes)
         self.frames = frames
@@ -134,7 +134,7 @@ class Geom(object):
     def __init__(self, aes=Aes()):
         self.aes = aes
     
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         raise NotImplementedError()
 
     def update(self, aes):
@@ -142,7 +142,7 @@ class Geom(object):
 
 class GeomPoints(Geom):
 
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         # If an aes was passed, we override...
         aes = aes.updated(self.aes)
 
@@ -166,7 +166,7 @@ class GeomPoints(Geom):
 
 class GeomSpheres(Geom):
 
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         # If an aes was passed, we override...
         aes = aes.updated(self.aes)
 
@@ -184,7 +184,7 @@ class GeomSpheres(Geom):
 
 class GeomLines(Geom):
 
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         # Return a dict of primitives produced from aes data
         aes = aes.updated(self.aes)
         
@@ -202,7 +202,7 @@ class GeomLines(Geom):
 
 class GeomCylinders(Geom):
 
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         # Return a dict of primitives produced from aes data
         aes = aes.updated(self.aes)
         
@@ -220,7 +220,7 @@ class GeomCylinders(Geom):
 
 class GeomSurface(Geom):
     
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         pass
 
 from numpy.lib.stride_tricks import as_strided
@@ -246,7 +246,7 @@ def groupby_ix(a):
 
 class GeomProteinCartoon(Geom):
     
-    def __init__(self, aes):
+    def __init__(self, aes=Aes()):
         super(GeomProteinCartoon, self).__init__(aes)
         
         # It is necessary to have
@@ -255,7 +255,7 @@ class GeomProteinCartoon(Geom):
         # aes.secondary (secondary structure)
         
     
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         aes = aes.updated(self.aes)
         
         # Check if secondary_id is present, if not we generate a reasonable one
@@ -330,17 +330,15 @@ class GeomProteinCartoon(Geom):
 
 from chemview.utils import normalized, beta_sheet_normals, alpha_helix_normals
 
-
-
 class GeomRibbon(Geom):
     
-    def __init__(self, aes, color=0xffffff, width=0.2, arrow=False):
+    def __init__(self, aes=Aes(), color=0xffffff, width=0.2, arrow=False):
         super(GeomRibbon, self).__init__(aes)
         self.color = color
         self.width = width
         self.arrow = arrow
     
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         aes = aes.updated(self.aes)
         
         xyz = np.array(aes.xyz)
@@ -360,13 +358,13 @@ class GeomRibbon(Geom):
 
 class GeomTube(Geom):
     
-    def __init__(self, aes, color=0xffffff, radius=0.05, resolution=4):
+    def __init__(self, aes=Aes(), color=0xffffff, radius=0.05, resolution=4):
         super(GeomTube, self).__init__(aes)
         self.color = color
         self.radius = radius
         self.resolution = 4
         
-    def produce(self, aes):
+    def produce(self, aes=Aes()):
         aes = aes.updated(self.aes)
         
         xyz = np.array(aes.xyz)

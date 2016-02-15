@@ -91,11 +91,13 @@ def render_povray(scene, filename='ipython', width=600, height=600,
     return scene.render(filename, width=width, height=height,
                         antialiasing = antialiasing)
 
+    
+
 def _generate_objects(representations):
     objects = []
 
     for rep in representations:
-        if rep['type'] == 'spheres':
+        if rep['rep_type'] == 'spheres':
             for i, (x, y, z) in enumerate(rep['options']['coordinates']):
                 r = rep['options']['radii'][i]
                 c = rep['options']['colors'][i]
@@ -103,7 +105,7 @@ def _generate_objects(representations):
                 sphere = vp.Sphere( [x,y,z] , r, vp.Texture( vp.Pigment( 'color', hex2rgb(c)) ))
                 objects.append(sphere)
 
-        elif rep['type'] == 'points':
+        elif rep['rep_type'] == 'points':
             # Render points as small spheres
             for i, (x, y, z) in enumerate(rep['options']['coordinates']):
                 c = rep['options']['colors'][i]
@@ -119,7 +121,7 @@ def _generate_objects(representations):
                                     vp.Interior('ior', 1.0))
                 objects.append(sphere)
 
-        elif rep['type'] == 'surface':
+        elif rep['rep_type'] == 'surface':
             verts = rep['options']['verts']
             faces = rep['options']['faces']
             color = rep['options']['color']
@@ -132,7 +134,7 @@ def _generate_objects(representations):
                                    vp.Texture(vp.Pigment('color', hex2rgb(color))))
                 objects.append(povt)
 
-        elif rep['type'] == 'cylinders':
+        elif rep['rep_type'] == 'cylinders':
             start = rep['options']['startCoords']
             end = rep['options']['endCoords']
             colors = rep['options']['colors']
@@ -146,7 +148,7 @@ def _generate_objects(representations):
                                        vp.Texture(vp.Pigment('color', 'rgbf', hex2rgb(c) + (1 - t,))))
                 objects.append(cylinder)
 
-        elif rep['type'] == 'lines':
+        elif rep['rep_type'] == 'lines':
             start = rep['options']['startCoords']
             end = rep['options']['endCoords']
             colors = rep['options']['startColors']
@@ -162,7 +164,7 @@ def _generate_objects(representations):
                 objects.append(cylinder)
 
         else:
-            print("No support for representation type: %s" % rep['type'])
+            print("No support for representation rep_type: %s" % rep['rep_type'])
 
     return objects
 

@@ -281,9 +281,13 @@ var PointsRepresentation = function (coordinates, colors, sizes, visible) {
         varying vec3 vColor;\
         \
         void main() {\
+		vec3 outlineColor = vec3(0.3, 0.3, 0.3);\
         if (length(gl_PointCoord*2.0 - 1.0) > 1.0)\
             discard;\
-        gl_FragColor = vec4( vColor,  1.0);\
+		else if (length(gl_PointCoord*2.0 - 1.0) > 0.9)\
+		    gl_FragColor = vec4(outlineColor, 1.0);\
+		else\
+        	gl_FragColor = vec4( vColor,  1.0);\
     }\
     ";
 

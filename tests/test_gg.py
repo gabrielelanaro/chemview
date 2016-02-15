@@ -8,15 +8,6 @@ def npeq_(a, b):
     assert np.array_equal(a, b)
 
 np.random.seed(10)
-# def test_gg():
-#     gg = ggview(Aes(xyz=[[0, 0, 0], [0, 0, 0.15]], 
-#                     colors=["H", "Cl"],
-#                     sizes=[1, 1],
-#                     connect=[[0, 1]],
-#                     visible=[True, True]))
-#     
-#     gg = (gg + GeomPoints() + GeomLines())
-#     gg.primitives
 
 def test_geom_points():
     xyz = [[0, 0, 0], [0, 0, 0.15]]

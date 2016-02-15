@@ -179,4 +179,4 @@ def get_atom_color(atom_name):
         "FM": 0xB31FBA,
     }
 
-    return atomColors[atom_name.upper()]
+    return atomColors.get(atom_name.upper(), 0xFFFFFF)
