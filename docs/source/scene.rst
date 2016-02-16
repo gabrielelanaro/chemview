@@ -69,3 +69,16 @@ Optional: colors, alpha
   - **radius**: ``int`` width of the tube
   - **color**: ``uint8`` color of the tube
   - **resolution**: ``int`` how many segments to use to smooth the tube
+  
+  
+ Optional: radius, color, resolution
+  
+ **ribbon**:
+   - **coordinates**: ``array(float32, shape=(n, 3))`` control points
+   - **normals**: ``array(float32, shape=(n, 3))`` normal at the control points
+   - **resolution**: ``int`` ribbon resolution
+   - **color**: ``uint8`` color of the ribbon
+   - **width**: ``float`` width of the ribbon
+   - **arrow**: ``arrow`` wether to have an arrow at the end of the ribbon.
+ 
+ Optional: normals, resolution, color, width, arrow

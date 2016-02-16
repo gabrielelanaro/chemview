@@ -23,9 +23,7 @@ or, for the development version you can manually install the dependencies:
 
 .. code-block:: bash
 
-    $ conda install notebook
-    $ conda install numpy
-    $ conda install numba
+    $ conda install notebook numpy numba
     $ git clone https://github.com/gabrielelanaro/chemview
     $ cd chemview
     $ pip install .
@@ -34,14 +32,22 @@ It is also possible to install chemview using pip:
 
 .. code-block:: bash
 
-    pip install notebook # Jupyter 4.x
-    pip install numpy
-    pip install numba
+    pip install notebook numpy numba # Jupyter 4.x
 
     # Download and install chemview
     git clone https://github.com/gabrielelanaro/chemview
     cd chemview
     pip install .
+    
+Chemview has an optional <povray http://www.povray.org/>_ backend for
+rendering high quality images. For this you'll need to install the povray software
+and the vapory bindings:
+
+ 
+.. code-block:: bash
+
+    pip install vapory
+
 
 Quick Start
 -----------

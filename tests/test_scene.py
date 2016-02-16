@@ -33,7 +33,7 @@ def test_points_validation():
      
     nschema = validate_schema(val, POINTS_SCHEMA)
     eq_(nschema['options']['colors'], [0xffffff, 0xffffff, 0xffffff])
-    eq_(nschema['options']['sizes'], [1.0, 1.0, 1.0])
+    eq_(nschema['options']['sizes'], [0.1, 0.1, 0.1])
 
 
 def test_spheres_validation():
@@ -44,5 +44,5 @@ def test_spheres_validation():
     
     nschema = validate_schema(val, SPHERES_SCHEMA)
     eq_(nschema['options']['colors'], [0xffffff, 0xffffff, 0xffffff])
-    eq_(nschema['options']['radii'], [1.0, 1.0, 1.0])
+    eq_(nschema['options']['radii'], [0.1, 0.1, 0.1])
     

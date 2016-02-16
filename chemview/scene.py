@@ -105,6 +105,16 @@ class Keyword(Validator):
     def cast(self, value):
         return six.u(value)
 
+class Boolean(Validator):
+    def __init__(self, default=None):
+        self._default = default
+    
+    def validate(self, value):
+        return isinstance(value, bool), 'should be a boolean, got {}'.format(value)
+    
+    def cast(self, value):
+        return bool(value)
+
 class MatchSchema(object):
 
     def __init__(self, matchers, field):
@@ -125,7 +135,7 @@ POINTS_SCHEMA = {
     "options":  
         OrderedDict({'coordinates': Array(shape=(-1, 3), type=np.float32),
                      'colors': TypedList(int, match_length='coordinates', default_item=0xffffff),
-                     'sizes': TypedList(float, match_length='coordinates', default_item=1.0),
+                     'sizes': TypedList(float, match_length='coordinates', default_item=0.1),
                      'visible': TypedList(float, match_length='coordinates', default_item=1.0)})
 }
 
@@ -179,6 +189,17 @@ SMOOTHTUBE_SCHEMA = {
                  'radius': BoundedScalar(0.0, float('inf'), float, default=1.0),
                  'color': BoundedScalar(0, 0xffffff, int, default=0xffffff),
                  'resolution': BoundedScalar(2, float('inf'), int, default=16)})
+}
+
+RIBBON_SCHEMA = {
+    "rep_id": UniqueID(),
+    "rep_type": Keyword("ribbon"),
+    "options" : 
+    OrderedDict({'coordinates': Array(shape=(-1, 3), type=np.float32),
+                 'normals': Array(shape=(-1, 3), type=np.float32),
+                 'color': BoundedScalar(0, 0xffffff, int, default=0xffffff),
+                 'width': BoundedScalar(0.0, float('inf'), float, default=0.2),
+                 'arrow': Boolean(default=False)})
 }
 
 
