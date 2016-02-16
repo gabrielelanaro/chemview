@@ -65,7 +65,7 @@ class TypedList(Validator):
         return length_condition and type_condition, 'should be a list with elements of type {}'.format(self.type)
     
     def cast(self, value):
-        return [self.type(t) for v in value]
+        return [self.type(v) for v in value]
 
 
 class UniqueID(Validator):
@@ -111,7 +111,7 @@ class MatchSchema(object):
         self.field = field
         self.matchers = {m[field].value: m for m in matchers}
 
-    def propagate(self, value):
+    def match(self, value):
         return self.matchers[value[self.field]]
         
 class ValidationError(Exception):
@@ -135,7 +135,7 @@ SPHERES_SCHEMA = {
     "options" : 
         OrderedDict({'coordinates': Array(shape=(-1, 3), type=np.float32),
                      'colors': TypedList(int, match_length='coordinates', default_item=0xffffff),
-                     'radii': TypedList(float, match_length='coordinates', default_item=1.0),
+                     'radii': TypedList(float, match_length='coordinates', default_item=0.1),
                      'alpha': TypedList(float, match_length='coordinates', default_item=1.0)})
 }
 
@@ -147,18 +147,7 @@ CYLINDERS_SCHEMA = {
         OrderedDict({'startCoords': Array(shape=(-1, 3), type=np.float32),
                      'endCoords': Array(shape=(-1, 3), type=np.float32),
                      'colors': TypedList(int, match_length='startCoords', default_item=0xffffff),
-                     'radii': TypedList(float, match_length='startCoords', default_item=1.0),
-                     'alpha': TypedList(float, match_length='startCoords', default_item=1.0)})
-}
-
-CYLINDERS_SCHEMA = { 
-    "rep_id": UniqueID(),
-    "rep_type": Keyword("cylinders"),
-    "options" : 
-        OrderedDict({'startCoords': Array(shape=(-1, 3), type=np.float32),
-                     'endCoords': Array(shape=(-1, 3), type=np.float32),
-                     'colors': TypedList(int, match_length='startCoords', default_item=0xffffff),
-                     'radii': TypedList(float, match_length='startCoords', default_item=1.0),
+                     'radii': TypedList(float, match_length='startCoords', default_item=0.1),
                      'alpha': TypedList(float, match_length='startCoords', default_item=1.0)})
 }
 
@@ -223,7 +212,7 @@ def validate_schema(value, schema):
             
             validated_inp = []
             for val in inp:
-                sub_schema = validator.propagate(val)
+                sub_schema = validator.match(val)
                 validated_inp.append(validate_schema(val, sub_schema))
                 
             retval[key] = validated_inp

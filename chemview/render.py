@@ -1,5 +1,6 @@
 '''Utilities for rendering'''
 from __future__ import division, print_function
+from .scene import normalize_scene
 
 import numpy as np
 import math
@@ -32,7 +33,7 @@ def render_povray(scene, filename='ipython', width=600, height=600,
                         " package installed.")
 
     # Adding extra options
-    scene = scene.copy()
+    scene = normalize_scene(scene)
     scene.update(extra_opts)
 
     # Camera target
@@ -164,7 +165,7 @@ def _generate_objects(representations):
                 objects.append(cylinder)
 
         else:
-            print("No support for representation rep_type: %s" % rep['rep_type'])
+            raise ValueError("No support for representation rep_type: %s" % rep['rep_type'])
 
     return objects
 
