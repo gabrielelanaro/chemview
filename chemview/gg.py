@@ -246,9 +246,10 @@ def groupby_ix(a):
 
 class GeomProteinCartoon(Geom):
     
-    def __init__(self, aes=Aes()):
+    def __init__(self, aes=Aes(), cmap=None):
         super(GeomProteinCartoon, self).__init__(aes)
         
+        self.cmap = cmap or {'H': 0xff0000, 'E':0x00ffff, 'C':0xffffff}
         # It is necessary to have
         # aes.xyz (Coordinates)
         # aes.types (Atom types)
@@ -276,17 +277,17 @@ class GeomProteinCartoon(Geom):
         primitives = []
         
         for xyz, normals in zip(*self._extract_helix_coords_normals(aes)):
-            g_helices = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=32), color=0xff0000)
+            g_helices = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=32), 
+                                   color=self.cmap.get('H', 0xffffff))
             primitives.extend(g_helices.produce(Aes()))
         
         for xyz, normals in zip(*self._extract_sheet_coords_normals(aes)):
             g_sheets = GeomRibbon(Aes(xyz=xyz, normals=normals, resolution=32), 
-                                  arrow=True, color=0x00ffff)
+                                  arrow=True, color=self.cmap.get('E', 0xffffff))
             primitives.extend(g_sheets.produce(Aes()))
 
         for xyz in self._extract_coil_coords(aes):
-            # g_coils = GeomLines(Aes(xyz=xyz, edges=pairs(range(len(xyz)))))
-            g_coils = GeomTube(Aes(xyz=xyz))
+            g_coils = GeomTube(Aes(xyz=xyz), color=self.cmap.get('C', 0xffffff))
             primitives.extend(g_coils.produce(Aes()))
         
         return primitives

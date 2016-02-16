@@ -227,14 +227,24 @@ class RepresentationViewer(DOMWidget):
     
     @classmethod
     def from_scene(cls, scenedict):
+        """Build a representation from scenedict"""
+        
         self = cls()
         
-        """Build a representation from scenedict"""
         for rep in scenedict["representations"]:
             self.add_representation(rep["rep_type"], rep["options"], rep['rep_id'])
         return self
             
-            
+    def autozoom(self, coordinates):
+        """Automatically zoom the scene to enclose *coordinates*.
+        
+        :param coordinates: array-like of shape (N, 3)
+        
+        """
+        
+        coordinates = np.array(coordinates, dtype='float32')
+        self._remote_call('zoomInto', coordinates=coordinates)
+        
 def check_points(options):
     cleaned = {}
     cleaned["coordinates"] = np.ascontiguousarray(options["coordinates"], dtype="float32")

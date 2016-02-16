@@ -50,8 +50,10 @@ class MolecularViewer(RepresentationViewer):
         # Update closure
         def update(self=self, points=points):
             self.update_representation(points, {'coordinates': self.coordinates.astype('float32')})
+            
         self.update_callbacks.append(update)
-
+        self.autozoom(self.coordinates)
+        
     def lines(self):
         '''Display the system bonds as lines.
 
@@ -77,6 +79,7 @@ class MolecularViewer(RepresentationViewer):
             self.update_representation(lines, {'startCoords': self.coordinates[bond_start],
                                                  'endCoords': self.coordinates[bond_end]})
         self.update_callbacks.append(update)
+        self.autozoom(self.coordinates)
 
     def wireframe(self, pointsize=0.2):
         '''Display atoms as points of size *pointsize* and bonds as lines.'''
@@ -116,6 +119,7 @@ class MolecularViewer(RepresentationViewer):
                                                  'endCoords': self.coordinates[list(end_idx)]})
 
             self.update_callbacks.append(update)
+        self.autozoom(self.coordinates)
 
     def line_ribbon(self):
         '''Display the protein secondary structure as a white lines that passes through the
@@ -130,6 +134,8 @@ class MolecularViewer(RepresentationViewer):
         def update(self=self, smoothline=smoothline):
             self.update_representation(smoothline, {'coordinates': self.coordinates[backbone]})
         self.update_callbacks.append(update)
+        
+        self.autozoom(self.coordinates)
 
     def cylinder_and_strand(self):
         '''Display the protein secondary structure as a white,
@@ -194,24 +200,33 @@ class MolecularViewer(RepresentationViewer):
                                                   'endCoords': self.coordinates[list(end_idx)]})
 
         self.update_callbacks.append(update)
-
-    def cartoon(self):
+        self.autozoom(self.coordinates)
+        
+    def cartoon(self, cmap=None):
         '''Display a protein secondary structure as a pymol-like cartoon representation.
         
+        :param cmap: is a dictionary that maps the secondary type 
+                    (H=helix, E=sheet, C=coil) to a hexadecimal color (0xffffff for white) 
         '''
         # Parse secondary structure
         top = self.topology
         
         geom = gg.GeomProteinCartoon(gg.Aes(xyz=self.coordinates, 
                                             types=top['atom_names'],
-                                            secondary_type=top['secondary_structure']))
+                                            secondary_type=top['secondary_structure']),
+                                            cmap=cmap)
+        
         primitives = geom.produce(gg.Aes())
         ids = [self.add_representation(r['rep_type'], r['options']) for r in primitives]
+        
         def update(self=self, geom=geom, ids=ids):
             primitives = geom.produce(Aes(xyz=self.coordinates))
             [self.update_representation(id_, rep['options']) 
                 for id_, rep_options in zip(ids, primitives)]
-            
+        
+        self.update_callbacks.append(update)
+        self.autozoom(self.coordinates)
+    
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
 
@@ -268,6 +283,7 @@ class MolecularViewer(RepresentationViewer):
                                                      'faces': faces.astype('int32'),
                                                      'style': style,
                                                      'color': color})
+        self.autozoom(verts)
 
     def add_isosurface_grid_data(self, data, origin, extent, resolution,
                                  isolevel=0.3, scale=10,
@@ -291,3 +307,5 @@ class MolecularViewer(RepresentationViewer):
                                                      'faces': faces.astype('int32'),
                                                      'style': style,
                                                      'color': color})
+             
+        self.autozoom(verts)

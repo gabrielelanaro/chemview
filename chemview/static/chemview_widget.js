@@ -250,40 +250,33 @@ define(['widgets/js/widget',
 
             if (type == 'points') {
                 var rep = new PointsRepresentation(options.coordinates, options.colors, options.sizes, options.visible);
-                this.mv.zoomInto(options.coordinates);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'lines') {
                 var rep = new LineRepresentation(options.startCoords, options.endCoords, options.startColors, options.endColors);
-                this.mv.zoomInto(options.startCoords);
                 this.mv.addRepresentation(rep, repId);
 
             } else if (type == 'surface') {
                 var rep = new SurfaceRepresentation(options.verts, options.faces, options.style, options.color);
-                this.mv.zoomInto(options.verts);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'spheres') {
                 var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.zoomInto(options.coordinates);
             } else if (type == 'box') {
                 var rep = new BoxRepresentation(options.start, options.end, options.color);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'smoothline') {
                 var rep = new SmoothLineRepresentation(options.coordinates, options.color, options.resolution);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.zoomInto(options.coordinates);
             } else if (type == 'smoothtube') {
                 var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
                 this.mv.addRepresentation(rep, repId);
             } else if (type == 'cylinders') {
                 var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.zoomInto(options.startCoords);
             } else if (type == 'ribbon') {
                 var rep = new RibbonRepresentation(options.coordinates, options.normals, options.color, 
                                                    options.resolution, options.width, options.height, options.arrow);
                 this.mv.addRepresentation(rep, repId);
-                this.mv.zoomInto(options.coordinates);
             } else {
                 console.log("Undefined representation " + type);
             }
@@ -317,6 +310,11 @@ define(['widgets/js/widget',
         },
 
         zoomInto: function (args) {
+            
+            // Cast if necessary
+            if ('data' in args.coordinates)
+                args.coordinates = this.ndarrayToTypedArray(args.coordinates)
+            
             this.mv.zoomInto(args.coordinates);
             this.mv.render();
         },
