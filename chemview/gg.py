@@ -32,6 +32,7 @@ class Aes(AttrDict):
         return copy
 
 class ggview(object):
+    
     def __init__(self, aes=Aes()):
         self.aes = aes
         self.geometries = []
@@ -43,7 +44,6 @@ class ggview(object):
         
         # Apply scale that map data to aes
         for scale in self.scales:
-            scale.render()
             aes = scale.apply(aes)
         
         primitives = []
@@ -52,7 +52,18 @@ class ggview(object):
 
         # We generate a json description
         rv = RepresentationViewer.from_scene({"representations" : primitives})
+            
+        for scale in self.scales:
+            scale.render(rv)
+        
+        if 'xyz' in self.aes:
+            rv.autozoom(self.aes.xyz)
+        
         return rv
+    
+    def _ipython_display_(self):
+        rv = self.display()
+        return rv._ipython_display_()
 
     def __add__(self, other):
         
@@ -268,12 +279,6 @@ class GeomProteinCartoon(Geom):
             
             aes['secondary_id'] = secondary_id
         aes['types'] = np.array(aes.types)
-        
-        # print(secondary_id)
-        # print(aes.secondary_type)
-        # print(aes.types)
-        # print(np.count_nonzero(aes.types == 'CA'))
-        # print(len(aes.secondary_type))
         primitives = []
         
         for xyz, normals in zip(*self._extract_helix_coords_normals(aes)):
@@ -381,7 +386,7 @@ class GeomTube(Geom):
 
 class Scale(object):
     pass
-
+        
 class ScaleColorsGradient(Scale):
     property = "colors"
     
@@ -395,41 +400,34 @@ class ScaleColorsGradient(Scale):
         aes.colors = colors
         return aes
     
-    def render(self):
-        from matplotlib import pyplot
-        import matplotlib as mpl
-        
-        # Make a figure and axes with dimensions as desired.
-        fig = pyplot.figure(figsize=(8, 3))
-        ax1 = fig.add_axes([0.05, 0.80, 0.9, 0.15])
-
+    def render(self, widget):
+        import matplotlib as mpl        
         # Set the colormap and norm to correspond to the data for which
         # the colorbar will be used.
         cmap = mpl.cm.get_cmap(self.palette)
         norm = mpl.colors.Normalize(vmin=self.limits[0], vmax=self.limits[1])
-
-        # ColorbarBase derives from ScalarMappable and puts a colorbar
-        # in a specified axes, so it has everything needed for a
-        # standalone colorbar.  There are many more kwargs, but the
-        # following gives a basic continuous colorbar with ticks
-        # and labels.
-        cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap,
-                                        norm=norm,
-                                        orientation='horizontal')
-        #cb1.set_label('Some Units')
-        from IPython.display import display
-        from six import BytesIO
-        data = BytesIO()
-        fig.savefig(data, format="png")
-        display(Image(data=data.getvalue()))
-
+        
+        # Let's say we give 5 typical values
+        values = np.linspace(self.limits[0], self.limits[1], 5)
+        
+        colors = [rgbfloat_to_hex(cmap(norm(v))) for v in values]
+        values = ["%.2f" % v for v in values]
+        widget._remote_call('addColorScale', colors=colors, values=values)
+        
+        
 
 def rgbint_to_hex(rgb):
     return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2]
 
-def process_colors(size, colors, limits=None, palette="YlGnBu"):
+def rgbfloat_to_hex(rgb):
+    return (int(rgb[0] * 255) << 16) | (int(rgb[1]*255) << 8) | int(rgb[2] * 255)
+
+def process_colors(size, colors, limits=None, palette="YlGnBu", cmap=None):
     if colors is None:
         return [0xffffff] * size
+    
+    elif isinstance(colors, int):
+        return [colors] * size
     
     elif isinstance(colors, list) and len(colors) == 0:
         return [0xffffff] * size
@@ -461,7 +459,7 @@ def process_colors(size, colors, limits=None, palette="YlGnBu"):
 def process_sizes(size, sizes):
     if sizes is None:
         return [1.0] * size
-    if isinstance(sizes, int):
+    if isinstance(sizes, (float, int)):
         return [sizes] * size
     elif isinstance(sizes, list) and len(sizes) == 0:
         return [1.0] * size

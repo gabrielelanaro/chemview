@@ -12,6 +12,7 @@ from traitlets import (Any, Bool, Bytes, CBool, CFloat, CInt, CUnicode, Dict,
                        Enum, List, Tuple, Unicode)
 
 from .utils import encode_numpy
+from .export import serialize_to_dict
 
 __all__ = ['RepresentationViewer', "TrajectoryControls"]
 
@@ -152,7 +153,7 @@ class RepresentationViewer(DOMWidget):
         msg = {}
         msg['type'] = 'callMethod'
         msg['methodName'] = method_name
-        msg['args'] = self._recursive_serialize(kwargs)
+        msg['args'] = serialize_to_dict(kwargs)
 
         if self.displayed is True:
             self.send(msg) # This will be received with View.on_msg
@@ -164,20 +165,7 @@ class RepresentationViewer(DOMWidget):
 
             self._displayed_callbacks.append(callback)
 
-    def _recursive_serialize(self, dictionary):
-        '''Serialize a dictionary inplace'''
-        for k, v in dictionary.items():
-            if isinstance(v, dict):
-                self._recursive_serialize(v)
-            else:
-                # This is when custom serialization happens
-                if isinstance(v, np.ndarray):
-                    if v.dtype == 'float64':
-                        # We don't support float64 on js side
-                        v = v.astype('float32')
 
-                    dictionary[k] = encode_numpy(v)
-        return dictionary
 
     def _handle_custom_msg(self, content, buffers=None):
         # Handle custom messages sent by the javascript counterpart

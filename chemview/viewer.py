@@ -220,7 +220,7 @@ class MolecularViewer(RepresentationViewer):
         ids = [self.add_representation(r['rep_type'], r['options']) for r in primitives]
         
         def update(self=self, geom=geom, ids=ids):
-            primitives = geom.produce(Aes(xyz=self.coordinates))
+            primitives = geom.produce(gg.Aes(xyz=self.coordinates))
             [self.update_representation(id_, rep['options']) 
                 for id_, rep_options in zip(ids, primitives)]
         

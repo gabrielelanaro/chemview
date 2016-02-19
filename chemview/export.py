@@ -1,75 +1,46 @@
 '''Static export for viewing in  nbviewer (or the web)'''
 import json
-from IPython.display import display, Javascript, HTML
+import os
+import numpy as np
 
-def display_static(viewer):
-    '''Display a static version of the selected widget'''
+from .scene import normalize_scene
+from .utils import encode_numpy
 
-    # First generate the serialized json
-    def callback(content):
-        display_json(content['json'])
-
-    viewer._connect_event('serialize', callback)
-    viewer._remote_call('_handle_serialize')
-
-
-def display_json(json_data):
-    # Load the modules with javascript
-    requires = '''
-    var prefix = "https://rawgit.com/gabrielelanaro/chemview/master/chemview/static/";
-
-    require.config({
-        paths: {
-            'jquery': prefix + 'jquery.min',
-            'jqueryui': prefix + 'jquery-ui.min',
-            'exporter': prefix + 'objexporter.js',
-            'three': prefix + 'three.min',
-            'base64-arraybuffer': prefix + 'base64-arraybuffer',
-            'ArcballControls' : prefix + 'ArcballControls',
-            'chemview': prefix + 'chemview',
-        },
-        shim: {
-            three: {
-                exports: 'THREE'
-            },
-
-            chemview: {
-                deps: ['three', 'ArcballControls', 'base64-arraybuffer'],
-                exports: 'MolecularViewer'
-            },
-
-            ArcballControls: {
-                deps: ['three'],
-                exports: 'THREE.ArcballControls',
-            },
-        },
-    });
+def export_html(export_dir, scene):
+    raise NotImplementedError()
+    
+    # We validate the input to make it complete
+    scene = normalize_scene(scene)
+    
+    # The scene gets json-serialized
+    scene_js = json.dumps(serialize_to_dict(scene))
+    
+    os.mkdir(export_dir)
+    with open(os.path.join(export_dir, 'scene.js'), 'w') as fd:
+        fd.write(scene_js)
+    
+    template = '''
+    
     '''
+    
 
-    # Create canvas and attach a molecularviewer to it
-    # Embed the json object
-    displaycode = ('''
-            <canvas id="molecular_viewer"></canvas>
-            <script>
+def serialize_to_dict(dictionary):
+    '''Make a json-serializable dictionary from input dictionary by converting
+    non-serializable data types such as numpy arrays.'''
+    retval = {}
     
-            require(['chemview'], function () {
-                console.log('done loading');
-                var canvas = $("#molecular_viewer").css({width: 400, height: 400});
-                var mv = new MolecularViewer(canvas);
-                var data = ''' + json.dumps(json_data) + ''';
-    
-                mv.deserialize(data);
-                mv.animate();
-    
-                // Give it a nice zoom
-                mv.controls.dollyIn(1.9);
-    
-                mv.resize(canvas.width(), canvas.height());
-            });
-    
-            </script>
-        ''')
+    for k, v in dictionary.items():
+        if isinstance(v, dict):
+            retval[k] = serialize_to_dict(v)
+        else:
+            # This is when custom serialization happens
+            if isinstance(v, np.ndarray):
+                if v.dtype == 'float64':
+                    # We don't support float64 on js side
+                    v = v.astype('float32')
 
-    display(Javascript(requires))
-    display(HTML(displaycode))
-    #print displaycode
+                retval[k] = encode_numpy(v)
+            else:
+                retval[k] = v
+    
+    return retval

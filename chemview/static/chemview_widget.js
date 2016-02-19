@@ -1,29 +1,22 @@
 /* This is a require js module :) */
 require.config({
-
+    paths: {
+        'three': '/nbextensions/three.min',
+        'arcball': '/nbextensions/ArcballControls',
+        'base64-arraybuffer': '/nbextensions/base64-arraybuffer'
+    },
     shim: {
 
-        'nbextensions/three.min' : {
-            exports : 'THREE'
+        'three': {
+            exports: 'THREE'
         },
 
-        'nbextensions/ArcballControls': {
-            deps : ['nbextensions/three.min'],
-            exports : 'THREE.ArcballControls'
+        'arcball': {
+            deps: ['three'],
+            exports: 'THREE.ArcballControls'
         },
 
-        'nbextensions/chemview' : {
-            deps : [ 'nbextensions/three.min',
-                     'nbextensions/ArcballControls' ],
-            exports : 'MolecularViewer'
-        },
-
-        'nbextensions/context' : {
-            deps : [ 'nbextensions/jquery-ui.min' ],
-            exports : 'context'
-        },
-
-        'nbextensions/jquery-ui.min': {
+        '/nbextensions/jquery-ui.min': {
             exports: "$"
         },
 
@@ -31,335 +24,410 @@ require.config({
 })
 
 define(['widgets/js/widget',
-        'nbextensions/chemview',
-        'nbextensions/context',
-        'nbextensions/base64-arraybuffer'],
-    function ( widget, MolecularView, context ) {
-    var HEIGHT = 600,
-        WIDTH = 600,
-        HEIGHT_PX = HEIGHT + 'px',
-        WIDTH_PX = WIDTH + 'px';
+        '/nbextensions/chemview.js',
+        '/nbextensions/scales.js'
+    ],
+    function(widget, chemview, ColorScale) {
+        var HEIGHT = 600,
+            WIDTH = 600,
+            HEIGHT_PX = HEIGHT + 'px',
+            WIDTH_PX = WIDTH + 'px';
 
-    var MolecularView = widget.DOMWidgetView.extend({
-
-        render : function() {
-
-            console.log(this);
-            var WIDTH = this.model.get('width'),
-                HEIGHT = this.model.get('height');
-
-            var that = this;
-            var model = this.model;
-            var canvas = $("<canvas/>"); // .height(HEIGHT).width(WIDTH);
-            var mv = new MolecularViewer(canvas);
-            this.mv = mv;
-            this.mv.resize(WIDTH, HEIGHT);
+        var MolecularView = widget.DOMWidgetView.extend({
             
-            this.model.on("msg:custom", function (msg) {
-                that.on_msg(msg);
-            });
+            render: function() {
+                
+                var WIDTH = this.model.get('width'),
+                    HEIGHT = this.model.get('height');
 
-            var container = $('<div/>').height(HEIGHT).width(WIDTH)
-                .resizable({
-                    aspectRatio: false,
-                    resize: function(event, ui) {
-                        mv.resize(ui.size.width, ui.size.height);
-                        model.set('width', ui.size.width);
-                        model.set('height', ui.size.height);
-                        that.touch();
-                    },
-                    stop : function(event, ui) {
-                        mv.render();
-                    },
+                var that = this;
+                var model = this.model;
+                var canvas = $("<canvas/>"); // .height(HEIGHT).width(WIDTH);
+                var mv = new chemview.MolecularViewer(canvas);
+                console.log("Created molecularviewer");
+                console.log(this);
+                this.mv = mv;
+                this.mv.resize(WIDTH, HEIGHT);
+
+                this.model.on("msg:custom", function(msg) {
+                    that.on_msg(msg);
                 });
-            this.container = container;
-            this.setupContextMenu(this);
 
-            container.append(canvas);
-            this.setElement(container);
-            mv.renderer.setSize(WIDTH, HEIGHT);
+                var container = $('<div/>').height(HEIGHT).width(
+                        WIDTH)
+                    .resizable({
+                        aspectRatio: false,
+                        resize: function(event, ui) {
+                            mv.resize(ui.size.width, ui
+                                .size.height);
+                            model.set('width', ui.size.width);
+                            model.set('height', ui.size
+                                .height);
+                            that.touch();
+                        },
+                        stop: function(event, ui) {
+                            mv.render();
+                        },
+                    });
+                this.container = container;
 
-            this.setupFullScreen(canvas, container);
-            // That was pretty hard.
-            // The widget is added at THE VERY END, and this event gets called.
-            this.on('displayed', function () {
-                mv.animate();
-                mv.controls.handleResize();
-            });
+                container.append(canvas);
+                this.setElement(container);
+                mv.renderer.setSize(WIDTH, HEIGHT);
 
-            // Update the camera when the controls are changed
-            var model = this.model;
+                this.setupFullScreen(canvas, container);
+                // That was pretty hard.
+                // The widget is added at THE VERY END, and this event gets called.
+                this.on('displayed', function() {
+                    mv.animate();
+                    mv.controls.handleResize();
+                });
+
+                // Update the camera when the controls are changed
+                var model = this.model;
 
 
-            // We update the camera info at all times
-            that.mv.controls.staticMoving = this.model.get('static_moving');
-            this.model.on('change:static_moving', function () {
-                that.mv.controls.staticMoving = this.model.get('static_moving');
-            }
+                // We update the camera info at all times
+                that.mv.controls.staticMoving = this.model.get(
+                    'static_moving');
+                this.model.on('change:static_moving', function() {
+                    that.mv.controls.staticMoving =
+                        this.model.get('static_moving');
+                });
+
+                // Save camera info
+                that.model.set({
+                    'camera_str': JSON.stringify({
+                        cid: that.cid,
+                        position: that.mv.camera
+                            .position,
+                        quaternion: that.mv.camera
+                            .quaternion,
+                        aspect: that.mv.camera.aspect,
+                        fov: that.mv.camera.fov,
+                        target: that.mv.controls
+                            .target
+                    })
+                });
+
+                mv.controls.addEventListener('change',
+                    function() {
+                        that.model.set({
+                            'camera_str': JSON.stringify({
+                                cid: that.cid,
+                                position: that
+                                    .mv.camera
+                                    .position,
+                                quaternion: that
+                                    .mv.camera
+                                    .quaternion,
+                                aspect: that
+                                    .mv.camera
+                                    .aspect,
+                                fov: that.mv
+                                    .camera
+                                    .fov,
+                                target: that
+                                    .mv.controls
+                                    .target
+                            })
+                        });
+
+                        that.touch();
+                    }
                 );
 
-            // Save camera info
-            that.model.set(
-                {'camera_str': JSON.stringify(
-                    { cid : that.cid,
-                      position : that.mv.camera.position,
-                      quaternion : that.mv.camera.quaternion,
-                      aspect : that.mv.camera.aspect,
-                      fov: that.mv.camera.fov,
-                      target: that.mv.controls.target })
+
+                // We listen for changes in the camera
+                this.model.on("change:camera_str", function(
+                    context) {
+                    var camera_spec = JSON.parse(that.model
+                        .get('camera_str'));
+
+                    // This function is only for external updates to the camera.
+                    // Avoid updating yourself in an infinite loop
+                    if (camera_spec.cid != that.cid) {
+                        var q = camera_spec.quaternion,
+                            p = camera_spec.position;
+
+                        that.mv.controls.lastPosition.set(
+                            p.x, p.y, p.z);
+                        that.mv.camera.position.set(p.x,
+                            p.y, p.z);
+
+                        that.mv.controls.lastQuaternion
+                            .set(q._x, q._y, q._z, q._w);
+                        that.mv.camera.quaternion.set(q
+                            ._x, q._y, q._z, q._w);
+
+                        that.mv.render();
+                    }
+
                 });
 
-            mv.controls.addEventListener( 'change' ,
-                                            function () {
-                                                that.model.set(
-                                                    {'camera_str': JSON.stringify(
-                                                        { cid : that.cid,
-                                                          position : that.mv.camera.position,
-                                                          quaternion : that.mv.camera.quaternion,
-                                                          aspect : that.mv.camera.aspect,
-                                                          fov: that.mv.camera.fov,
-                                                          target: that.mv.controls.target  })
-                                                    });
+                mv.render();
 
-                                                that.touch();
-                                            }
-            );
+                this.model.set('loaded', true);
+                this.touch();
+            },
+            resize: function(width, height) {
+                this.model.set("width", width);
+                this.model.set("height", height);
 
+                this.mv.resize(width, height);
+                this.container.width(width).height(height);
+                this.mv.render();
+                this.touch();
+            },
 
-            // We listen for changes in the camera
-            this.model.on("change:camera_str", function (context) {
-                var camera_spec = JSON.parse(that.model.get('camera_str'));
+            update: function() {
+                return MolecularView.__super__.update.apply(
+                    this);
+            },
 
-                // This function is only for external updates to the camera.
-                // Avoid updating yourself in an infinite loop
-                if (camera_spec.cid != that.cid) {
-                    var q = camera_spec.quaternion,
-                        p = camera_spec.position;
+            setupFullScreen: function(canvas, container) {
+                // currently only works in chrome. need other prefixes for firefox
+                var mv = this.mv;
+                var model = this.model;
+                var that = this;
 
-                    that.mv.controls.lastPosition.set( p.x, p.y, p.z );
-                    that.mv.camera.position.set( p.x, p.y, p.z );
+                canvas.dblclick(function() {
+                    // model.trigger("fullscreen", that);
+                    console.log("Mv going fullscreen");
+                    that.send({
+                        event: "fullscreen"
+                    });
 
-                    that.mv.controls.lastQuaternion.set( q._x, q._y, q._z, q._w );
-                    that.mv.camera.quaternion.set( q._x, q._y, q._z, q._w );
-
-                    that.mv.render();
-                }
-
-            });
-
-            mv.render();
-
-            this.model.set('loaded', true);
-            this.touch();
-        },
-        resize : function (width, height) {
-            this.model.set("width", width);
-            this.model.set("height", height);
-            
-            this.mv.resize(width, height);
-            this.container.width(width).height(height);
-            this.mv.render();
-            this.touch();
-        },
-
-        update : function () {
-            return MolecularView.__super__.update.apply(this);
-        },
-
-        setupFullScreen : function(canvas, container) {
-            // currently only works in chrome. need other prefixes for firefox
-            var mv = this.mv;
-            var model = this.model;
-            var that = this;
-            
-            canvas.dblclick(function () {
-                // model.trigger("fullscreen", that);
-                console.log("Mv going fullscreen");
-                that.send({ event: "fullscreen" });
-                
-                if ('webkitCancelFullScreen' in document) {
-                    if (!document.webkitIsFullScreen) {
-                        canvas[0].webkitRequestFullScreen();
-                        mv.resize(screen.width, screen.height);
-                        mv.render();
-                    }
-                } else if ('mozCancelFullScreen' in document) {
-                    if (!document.mozIsFullScreen) {
-                        canvas[0].webkitRequestFullScreen();
-                        mv.resize(screen.width, screen.height);
-                        mv.render();
-                    }
-                }
-            });
-
-            if ('webkitCancelFullScreen' in document) {
-                document.addEventListener("webkitfullscreenchange", function() {
+                    if ('webkitCancelFullScreen' in
+                        document) {
                         if (!document.webkitIsFullScreen) {
-                            var width = model.get('width'),
-                                height = model.get('height');
-
-                            container.width(width).height(height);
-                            mv.resize(width, height);
+                            canvas[0].webkitRequestFullScreen();
+                            mv.resize(screen.width,
+                                screen.height);
+                            mv.render();
                         }
-                    });
-            } else if ('mozCancelFullScreen' in document) {
-                document.addEventListener("mozfullscreenchange", function() {
+                    } else if ('mozCancelFullScreen' in
+                        document) {
                         if (!document.mozIsFullScreen) {
-                            var width = model.get('width'),
-                                height = model.get('height');
-
-                            container.width(width).height(height);
-                            mv.resize(width, height);
+                            canvas[0].webkitRequestFullScreen();
+                            mv.resize(screen.width,
+                                screen.height);
+                            mv.render();
                         }
-                    });
-            }
-        },
-
-        /* We receive custom messages from our python conterpart with DOMWidget.send */
-        on_msg: function(msg) {
-            console.log('Receving message');
-            if (msg.type == 'callMethod') {
-                this[msg.methodName].call(this, msg.args);
-            }
-
-            return MolecularView.__super__.update.apply(this);
-        },
-
-        remove: function() {
-            // Cleanup
-            // console.log("Cleaning up" + this.mv.requestId);
-            console.log("calling remove");
-            window.cancelAnimationFrame(this.mv.requestId);
-            
-        },
-
-        addRepresentation : function (args) {
-            var type = args.type,
-                repId = args.repId,
-                options = args.options;
-            // Pre-process the options to convert numpy arrays or
-            // other data structures
-            var that = this;
-            _.each(options, function(value, key) {
-                                if (typeof value == 'object' && 'data' in value) {
-                                    // This is a numpy array
-                                    options[key] = that.ndarrayToTypedArray(value);
-                                }
-                            });
-
-
-            if (type == 'points') {
-                var rep = new PointsRepresentation(options.coordinates, options.colors, options.sizes, options.visible);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'lines') {
-                var rep = new LineRepresentation(options.startCoords, options.endCoords, options.startColors, options.endColors);
-                this.mv.addRepresentation(rep, repId);
-
-            } else if (type == 'surface') {
-                var rep = new SurfaceRepresentation(options.verts, options.faces, options.style, options.color);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'spheres') {
-                var rep = new SphereRepresentation(options.coordinates, options.radii, options.colors, options.resolution);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'box') {
-                var rep = new BoxRepresentation(options.start, options.end, options.color);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'smoothline') {
-                var rep = new SmoothLineRepresentation(options.coordinates, options.color, options.resolution);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'smoothtube') {
-                var rep = new SmoothTubeRepresentation(options.coordinates, options.radius, options.color, options.resolution);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'cylinders') {
-                var rep = new CylinderRepresentation(options.startCoords, options.endCoords, options.radii, options.colors, options.resolution);
-                this.mv.addRepresentation(rep, repId);
-            } else if (type == 'ribbon') {
-                var rep = new RibbonRepresentation(options.coordinates, options.normals, options.color, 
-                                                   options.resolution, options.width, options.height, options.arrow);
-                this.mv.addRepresentation(rep, repId);
-            } else {
-                console.log("Undefined representation " + type);
-            }
-
-            this.mv.controls.handleResize();
-            this.mv.render();
-        },
-
-        updateRepresentation : function (args) {
-            // Updates a previously created representation
-            var repId = args.repId,
-                options = args.options;
-
-            // Pre-process for numpy arrays
-            var that = this;
-            _.each(options, function(value, key) {
-                    if (typeof value == 'object' && value != null && 'data' in value) {
-                        // This is a numpy array
-                        options[key] = that.ndarrayToTypedArray(value);
                     }
                 });
 
-            var rep = this.mv.getRepresentation(repId);
-            rep.update(options);
-            this.mv.render();
-        },
+                if ('webkitCancelFullScreen' in document) {
+                    document.addEventListener(
+                        "webkitfullscreenchange",
+                        function() {
+                            if (!document.webkitIsFullScreen) {
+                                var width = model.get(
+                                        'width'),
+                                    height = model.get(
+                                        'height');
 
-        removeRepresentation: function (args) {
-            this.mv.removeRepresentation(args.repId);
-            this.mv.render();
-        },
+                                container.width(width).height(
+                                    height);
+                                mv.resize(width, height);
+                            }
+                        });
+                } else if ('mozCancelFullScreen' in document) {
+                    document.addEventListener(
+                        "mozfullscreenchange",
+                        function() {
+                            if (!document.mozIsFullScreen) {
+                                var width = model.get(
+                                        'width'),
+                                    height = model.get(
+                                        'height');
 
-        zoomInto: function (args) {
-            
-            // Cast if necessary
-            if ('data' in args.coordinates)
-                args.coordinates = this.ndarrayToTypedArray(args.coordinates)
-            
-            this.mv.zoomInto(args.coordinates);
-            this.mv.render();
-        },
-        
-        ndarrayToTypedArray: function (array) {
-            var buffer = decode(array['data']);
+                                container.width(width).height(
+                                    height);
+                                mv.resize(width, height);
+                            }
+                        });
+                }
+            },
 
-            if (array['type'] == 'float32') {
-                return new Float32Array(buffer);
-            }
-            else if (array['type'] == 'int32') {
-                return new Int32Array(buffer);
-            }
-            else {
-                console.log('Type ' + array['type'] + ' is not supported');
-            }
+            /* We receive custom messages from our python conterpart with DOMWidget.send */
+            on_msg: function(msg) {
+                console.log('Receving message');
+                if (msg.type == 'callMethod') {
+                    this[msg.methodName].call(this, msg.args);
+                }
 
-        },
+                return MolecularView.__super__.update.apply(
+                    this);
+            },
 
-        setupContextMenu : function(viewer) {
-            context.init({preventDoubleContext: true});
-            this.on('exportImg', this._handle_export.bind(this));
-            var menu = [{header: 'Inline Display'},
-                    {text: 'PNG',
-                    action: function () {
-                        viewer.trigger("exportImg");
+            remove: function() {
+                // Cleanup
+                // console.log("Cleaning up" + this.mv.requestId);
+                console.log("calling remove");
+                window.cancelAnimationFrame(this.mv.requestId);
+
+            },
+
+            addRepresentation: function(args) {
+                var type = args.type,
+                    repId = args.repId,
+                    options = args.options;
+                // Pre-process the options to convert numpy arrays or
+                // other data structures
+                var that = this;
+                _.each(options, function(value, key) {
+                    if (typeof value == 'object' &&
+                        value != null && ('data' in
+                            value)) {
+                        // This is a numpy array
+                        options[key] = that.ndarrayToTypedArray(
+                            value);
                     }
-                },];
-            context.attach('canvas', menu);
+                });
 
-        },
 
-        _handle_export: function(){
-            // Handles when the displayimage menu is clicked
-            var dataURL = this.mv.renderer.domElement.toDataURL('image/png');
-            this.send({event: 'displayImg', dataUrl: dataURL});
-        },
+                var c = chemview;
 
-        _handle_serialize: function () {
-            this.send({event: 'serialize', json: this.mv.serialize()});
-        }
+                if (type == 'points') {
+                    var rep = new c.PointsRepresentation(
+                        options.coordinates, options.colors,
+                        options.sizes, options.visible);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'lines') {
+                    var rep = new c.LineRepresentation(options.startCoords,
+                        options.endCoords, options.startColors,
+                        options.endColors);
+                    this.mv.addRepresentation(rep, repId);
+
+                } else if (type == 'surface') {
+                    var rep = new c.SurfaceRepresentation(
+                        options.verts, options.faces,
+                        options.style, options.color);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'spheres') {
+                    var rep = new c.SphereRepresentation(
+                        options.coordinates, options.radii,
+                        options.colors, options.resolution);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'box') {
+                    var rep = new c.BoxRepresentation(options.start,
+                        options.end, options.color);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'smoothline') {
+                    var rep = new c.SmoothLineRepresentation(
+                        options.coordinates, options.color,
+                        options.resolution);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'smoothtube') {
+                    var rep = new c.SmoothTubeRepresentation(
+                        options.coordinates, options.radius,
+                        options.color, options.resolution);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'cylinders') {
+                    var rep = new c.CylinderRepresentation(
+                        options.startCoords, options.endCoords,
+                        options.radii, options.colors,
+                        options.resolution);
+                    this.mv.addRepresentation(rep, repId);
+                } else if (type == 'ribbon') {
+                    var rep = new c.RibbonRepresentation(
+                        options.coordinates, options.normals,
+                        options.color,
+                        options.resolution, options.width,
+                        options.height, options.arrow);
+                    this.mv.addRepresentation(rep, repId);
+                } else {
+                    console.log("Undefined representation " +
+                        type);
+                }
+
+                this.mv.controls.handleResize();
+                this.mv.render();
+            },
+
+            updateRepresentation: function(args) {
+                // Updates a previously created representation
+                var repId = args.repId,
+                    options = args.options;
+
+                // Pre-process for numpy arrays
+                var that = this;
+                _.each(options, function(value, key) {
+                    if (typeof value == 'object' &&
+                        value != null && 'data' in
+                        value) {
+                        // This is a numpy array
+                        options[key] = that.ndarrayToTypedArray(
+                            value);
+                    }
+                });
+
+                var rep = this.mv.getRepresentation(repId);
+                rep.update(options);
+                this.mv.render();
+            },
+
+            removeRepresentation: function(args) {
+                this.mv.removeRepresentation(args.repId);
+                this.mv.render();
+            },
+
+            zoomInto: function(args) {
+
+                // Cast if necessary
+                if ('data' in args.coordinates)
+                    args.coordinates = this.ndarrayToTypedArray(
+                        args.coordinates)
+
+                this.mv.zoomInto(args.coordinates);
+                this.mv.render();
+            },
+
+            addColorScale: function(args) {
+                var colorScaleDiv = $("<div\>")
+                    .css("position", "absolute")
+                    .css("bottom", 0)
+                    .css("right", 0);
+                var colorScale = new ColorScale(colorScaleDiv,
+                    args.colors, args.values);
+                this.$el.append(colorScaleDiv);
+            },
+
+            ndarrayToTypedArray: function(array) {
+                var buffer = decode(array['data']);
+
+                if (array['type'] == 'float32') {
+                    return new Float32Array(buffer);
+                } else if (array['type'] == 'int32') {
+                    return new Int32Array(buffer);
+                } else {
+                    console.log('Type ' + array['type'] +
+                        ' is not supported');
+                }
+
+            },
+
+            _handle_export: function() {
+                // Handles when the displayimage menu is clicked
+                var dataURL = this.mv.renderer.domElement.toDataURL(
+                    'image/png');
+                this.send({
+                    event: 'displayImg',
+                    dataUrl: dataURL
+                });
+            },
+
+            _handle_serialize: function() {
+                this.send({
+                    event: 'serialize',
+                    json: this.mv.serialize()
+                });
+            }
+        });
+
+
+        return {
+            MolecularView: MolecularView
+        };
     });
-
-
-    return {
-        MolecularView : MolecularView
-    };
-});
