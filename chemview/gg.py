@@ -185,7 +185,7 @@ class GeomSpheres(Geom):
         return [{
                 "rep_id" : uuid.uuid1().hex,
                 'rep_type': "spheres",
-                "options": { "coordinates": aes.xyz,
+                "options": { "coordinates": np.array(aes.xyz, dtype='float32'),
                              "colors": process_colors(len(aes.xyz), aes.get("colors", None)),
                              "radii": process_sizes(len(aes.xyz), aes.get("sizes", 1)),
                              "visible": aes.get("visible", None) }
