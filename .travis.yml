@@ -14,9 +14,21 @@ python:
 sudo: false
 
 install:
-  - npm install -g nightwatch
-  - pip install jupyter numpy matplotlib nose vapory
-  - pip install .
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda info -a
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy
+  nose # Chemlab deps
+- source activate test-environment
+- pip install jupyter numpy matplotlib nose vapory chemlab # Chemview deps
+- pip install . # Chemview installation
+- npm install -g nightwatch 
 
 before_script:
   - "export DISPLAY=:99.0"
@@ -31,10 +43,10 @@ script:
 
 deploy:
   provider: pypi
-  user: gabrielelanaro
+  user: gabriele.lanaro
+  distributions: "sdist bdist_wheel"
   password:
-    secure: Effv1BoUrealLJ+K9Tro+kedaZuxCTwZkult70Q3ESuWaL9tf5wwgSqzU6SZ4v41mc5tWQ1gakLdzCdsS8OkBHhafwhKP25qgj5b3Fc6lEkb/We/aSs9LpCHU7axw/zxsEdwnLa4IvwysaLhGqnZwxntSbMA4O6hCK5qPaikOMM=
+    secure: RZiBFc7a7uAmxYJh5vXoP3eGBFNG9NiAApfWzc3O6b4WyTEFZ2NZUSlfcCghXwSs8Ydjy9herWbAxYGSkXZoM6KsX1B9RmFhcMiwb9nlnlsRFdUsqLuVpPXFZnHgsDxIzV/stNUd6sEBl4M+JgXg7JcSMxsdMcH7EDBfQ5WRFaI=
   on:
     tags: true
     repo: gabrielelanaro/chemview
-    branch: master
