@@ -1,19 +1,14 @@
 language: python
-
 cache:
   directories:
-    - $HOME/.cache/bower
-    - $HOME/.cache/pip
-
+  - $HOME/.cache/bower
+  - $HOME/.cache/pip
 notifications:
   email: false
-
 python:
 - 3.5
 - 2.7
-
 sudo: false
-
 install:
 - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
   -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -24,30 +19,27 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib cython h5py jupyter
-  nose # Chemlab deps
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib
+  cython h5py jupyter nose
 - source activate test-environment
-- pip install jupyter numpy matplotlib nose vapory chemlab==1.0b1 # Chemview deps
-- pip install . # Chemview installation
-- npm install -g nightwatch 
-
+- pip install jupyter numpy matplotlib nose vapory chemlab==1.0b1
+- pip install .
+- npm install -g nightwatch
 before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - "sleep 3" # give xvfb some time to start
-  - "jupyter notebook --port=8889 &"
-  - "sleep 3" # give xvfb some time to start
-
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- sleep 3
+- jupyter notebook --port=8889 &
+- sleep 3
 script:
-  - nightwatch
-  - nosetests -a '!povray' tests
-
+- nightwatch
+- nosetests -a '!povray' tests
 deploy:
   provider: pypi
   user: gabriele.lanaro
   distributions: "sdist bdist_wheel"
   password:
-    secure: RZiBFc7a7uAmxYJh5vXoP3eGBFNG9NiAApfWzc3O6b4WyTEFZ2NZUSlfcCghXwSs8Ydjy9herWbAxYGSkXZoM6KsX1B9RmFhcMiwb9nlnlsRFdUsqLuVpPXFZnHgsDxIzV/stNUd6sEBl4M+JgXg7JcSMxsdMcH7EDBfQ5WRFaI=
+    secure: civsioJrm0U1/isDG0pxWuxAgj/UDsbrUv+36iAua7ua9G9+9FN8Xw9bCr0ehCoGu9c3IC6er0F/8fti0ds3PT+1qLuMGzfv11cyvuV5gXMukK8hBmYzQY9I9C81vrWK7eWjnjcHH87uSYzOpPvE2SdVvcSSzcwdWXMKm6z/Jbc=
   on:
     tags: true
     repo: gabrielelanaro/chemview
