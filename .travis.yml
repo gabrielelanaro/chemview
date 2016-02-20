@@ -6,7 +6,7 @@ cache:
 
 notifications:
   email: false
-    
+
 python:
 - 3.5
 - 2.7
@@ -27,6 +27,7 @@ before_script:
 
 script:
   - nightwatch
+  - nosetests -a '!povray' tests
 
 deploy:
   provider: pypi
@@ -36,4 +37,4 @@ deploy:
   on:
     tags: true
     repo: gabrielelanaro/chemview
-    branch: webapp
+    branch: master
