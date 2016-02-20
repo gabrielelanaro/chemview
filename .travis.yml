@@ -26,7 +26,7 @@ install:
 - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib
   nose # Chemlab deps
 - source activate test-environment
-- pip install jupyter numpy matplotlib nose vapory chemlab=1.0b1 # Chemview deps
+- pip install jupyter numpy matplotlib nose vapory chemlab==1.0b1 # Chemview deps
 - pip install . # Chemview installation
 - npm install -g nightwatch 
 
