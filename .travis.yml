@@ -15,7 +15,7 @@ sudo: false
 
 install:
   - npm install -g nightwatch
-  - pip install jupyter numpy matplotlib
+  - pip install jupyter numpy matplotlib nose vapory
   - pip install .
 
 before_script:
