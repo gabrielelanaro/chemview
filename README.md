@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/chemview/badge/?version=latest)](https://readthedocs.org/projects/chemview/?badge=latest)
 [![Build Status](https://travis-ci.org/gabrielelanaro/chemview.svg?branch=master)](https://travis-ci.org/gabrielelanaro/chemview)
 
-Version: 0.2
+Version: 0.6
 
 The new generation molecular viewer for the IPython notebook.
 
