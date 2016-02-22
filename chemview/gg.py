@@ -200,8 +200,9 @@ class GeomLines(Geom):
         aes = aes.updated(self.aes)
         
         xyz = np.array(aes.xyz)
-        edges = np.array(aes.edges, 'uint8')
-        colors = process_colors(len(xyz), aes.get("colors", None))
+        edges = np.array(aes.edges, 'uint32')
+        colors = process_colors(len(aes.edges), aes.get("colors", None))
+        
         return [{ "rep_id" : uuid.uuid1().hex,
                   'rep_type': "lines",
                   "options" : {
@@ -218,15 +219,15 @@ class GeomCylinders(Geom):
         aes = aes.updated(self.aes)
         
         xyz = np.array(aes.xyz)
-        edges = np.array(aes.edges, 'uint8')
-        colors = process_colors(len(xyz), aes.get("colors", None))
+        edges = np.array(aes.edges, 'uint32')
+        colors = process_colors(len(edges), aes.get("colors", None))
         return [{ "rep_id" : uuid.uuid1().hex,
                   'rep_type': "cylinders",
                   "options" : {
                       "startCoords": np.take(xyz, edges[:, 0], axis=0),
                       "endCoords": np.take(xyz, edges[:, 1], axis=0),
                       "colors": colors,
-                      "radii": process_sizes(len(aes.xyz), aes.get("sizes", None))}
+                      "radii": process_sizes(len(aes.edges), aes.get("sizes", None))}
                  }]
 
 class GeomSurface(Geom):
