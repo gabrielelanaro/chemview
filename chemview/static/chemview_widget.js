@@ -337,6 +337,11 @@ define(['widgets/js/widget',
                         options.resolution, options.width,
                         options.height, options.arrow);
                     this.mv.addRepresentation(rep, repId);
+                } else if (type == 'labels') {
+                    var rep = new c.TextRepresentation(
+                        options.coordinates, options.labels,
+                        options.colors);
+                    this.mv.addRepresentation(rep, repId);
                 } else {
                     console.log("Undefined representation " +
                         type);

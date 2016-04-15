@@ -200,9 +200,9 @@ define(function(require) {
 				cylinders: CylinderRepresentation,
 				spheres: SphereRepresentation,
 				smoothline: SmoothLineRepresentation,
-				smoothtube: SmoothTubeRepresentation
+				smoothtube: SmoothTubeRepresentation,
+				labels: TextRepresentation
 			};
-
 
 			for (var key in json.representations) {
 				var rep = representationMap[json.representations[key].type].deserialize(
@@ -989,6 +989,138 @@ define(function(require) {
 	};
 
 
+	var TextRepresentation = function(coordinates, labels, colors) {
+		// Initialize stuff for serialization
+		this.type = "labels";
+		this.options = {
+			coordinates: coordinates,
+			labels: labels,
+			colors: colors,
+		};
+		
+        this.makeTextSprite = function( message, parameters ) {
+            //From https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
+            if ( parameters === undefined ) parameters = {};
+
+            var fontface = parameters.hasOwnProperty("fontface") ? 
+                parameters["fontface"] : "Arial";
+
+            var fontsize = parameters.hasOwnProperty("fontsize") ? 
+                parameters["fontsize"] : 18;
+
+            var borderThickness = parameters.hasOwnProperty("borderThickness") ? 
+                parameters["borderThickness"] : 4;
+
+            var borderColor = parameters.hasOwnProperty("borderColor") ?
+                parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
+
+            var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
+                parameters["backgroundColor"] : { r:0, g:0, b:0, a:1.0 };
+
+            var fontColor = parameters.hasOwnProperty("fontColor") ?
+                parameters["fontColor"] : { r:255, g:255, b:255, a:1.0 };
+			
+			if ( fontColor === undefined ) fontColor = { r:255, g:255, b:255, a:1.0 };
+
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+
+            // get size data (height depends only on font size)
+            var metrics = context.measureText( message );
+            var textWidth = metrics.width;
+
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.font = "bold " + fontsize + "px " + fontface;	
+
+            // text color
+            context.fillStyle = "rgba(" + fontColor.r + "," + fontColor.g + ","
+                                          + fontColor.b + "," + fontColor.a + ")";
+            context.fillText( message, canvas.width / 2 , canvas.height  / 2 );
+
+            // canvas contents will be used for a texture
+            var texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+
+            var spriteMaterial = new THREE.SpriteMaterial( 
+                { map: texture } );
+            spriteMaterial.depthWrite = false
+            spriteMaterial.depthTest = false
+            var sprite = new THREE.Sprite( spriteMaterial );
+            sprite.scale.set(0.1,0.1,1);
+            return sprite;	
+        };
+        //Uncomment to reset this.makeTextSprite
+		//this.makeTextSprite = undefined;
+
+        function roundRect(ctx, x, y, w, h, r) {
+			ctx.beginPath();
+			ctx.moveTo(x+r, y);
+			ctx.lineTo(x+w-r, y);
+			ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+			ctx.lineTo(x+w, y+h-r);
+			ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+			ctx.lineTo(x+r, y+h);
+			ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+			ctx.lineTo(x, y+r);
+			ctx.quadraticCurveTo(x, y, x+r, y);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();   
+		};
+
+		sprites=[];
+		for (var i = 0; i < coordinates.length / 3; i++) {
+			var params = {fontColor: colors[i], fontsize: 128, backgroundColor: {r:0, g:0, b:0, a:0}, borderColor: {r:0, g:0, b:0, a:0}};
+		    var spritey = this.makeTextSprite(labels[i], params);
+		    spritey.position.set(coordinates[3 * i + 0],coordinates[3 * i + 1],coordinates[3 * i + 2]);
+		    sprites.push( spritey );
+
+		};
+
+		this.update = function(options) {
+			if (options.coordinates != undefined) {
+				var coordinates = options.coordinates;
+
+				for (var i = 0; i < coordinates.length / 3; i++) {
+					for (var j = 0; j < sphereTemplate.vertices.length; j++) {
+						var vertex = new THREE.Vector3();
+
+						vertex.copy(sphereTemplate.vertices[j]);
+						vertex.multiplyScalar(radii[i]);
+						vertex.add(new THREE.Vector3(coordinates[3 * i + 0],
+							coordinates[3 * i + 1],
+							coordinates[3 * i + 2]));
+
+						var offset = i * sphereTemplate.vertices.length;
+						geometry.vertices[offset + j].copy(vertex);
+					}
+				}
+				geometry.verticesNeedUpdate = true;
+			}
+		};
+		
+
+		this.addToScene = function(scene) {
+			for (var i = 0; i < sprites.length; i++) {
+				scene.add(sprites[i]);
+			}
+		};
+
+		this.removeFromScene = function(scene) {
+			for (var i = 0; i < sprites.length; i++) {
+				scene.remove(sprites[i]);
+			}
+		};
+	};
+
+	TextRepresentation.deserialize = function(json) {
+		return new TextRepresentation(deserialize_array(json.options.coordinates),
+			deserialize_array(json.options.labels),
+			deserialize_array(json.options.colors));
+	};
+
+
 	var RibbonRepresentation = function(coords, normals, color, resolution,
 		width, height,
 		arrow) {
@@ -1182,6 +1314,7 @@ define(function(require) {
 		SmoothLineRepresentation: SmoothLineRepresentation,
 		SmoothTubeRepresentation: SmoothTubeRepresentation,
 		CylinderRepresentation: CylinderRepresentation,
-		RibbonRepresentation: RibbonRepresentation
+		RibbonRepresentation: RibbonRepresentation,
+		TextRepresentation: TextRepresentation
 	};
 });
