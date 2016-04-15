@@ -254,7 +254,23 @@ define(['widgets/js/widget',
             on_msg: function(msg) {
                 console.log('Receving message');
                 if (msg.type == 'callMethod') {
-                    this[msg.methodName].call(this, msg.args);
+                    if ( msg.methodName === 'dollyIn' ) {
+                        this.mv.controls.dollyIn(msg.args.dollyScale)
+                    }    else if ( msg.methodName === 'dollyOut' ) {
+                        this.mv.controls.dollyOut(msg.args.dollyScale)
+                    }    else if ( msg.methodName === 'rotateLeft' ) {
+                        this.mv.controls.rotateLeft(msg.args.angle)
+                    }    else if ( msg.methodName === 'rotateUp' ) {
+                        this.mv.controls.rotateUp(msg.args.angle)
+                    }    else if ( msg.methodName === 'pan' ) {
+                        this.mv.controls.pan(msg.args.deltaX, msg.args.deltaY)
+                    }    else if ( msg.methodName === 'reset' ) {
+                        this.mv.controls.reset()
+                    }    else {
+                        /* Moved this here to save memory - we don't want the log being filled up every time the controls are accessed */
+                        console.log('Receving message');
+                        this[msg.methodName].call(this, msg.args);    
+                    }
                 }
 
                 return MolecularView.__super__.update.apply(
