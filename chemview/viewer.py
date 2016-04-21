@@ -24,7 +24,7 @@ class MolecularViewer(RepresentationViewer):
         self.coordinates = coordinates.astype('float32')
         self.topology = topology
 
-
+        self._axes_reps = None
 
     def points(self, size=1.0, highlight=None, colorlist=None):
         """Display the system as points.
@@ -80,6 +80,71 @@ class MolecularViewer(RepresentationViewer):
         for rep_id in self.representations.keys():
             if self.representations[rep_id]['rep_type']=='text':
                 self.remove_representation(rep_id)
+    
+    def toggle_axes(self, parameters = None):
+        '''Toggle axes [x,y,z] on and off for the current representation
+        Parameters: dictionary of parameters to control axes:
+            position/p:     origin of axes
+            length/l:       length of axis
+            offset/o:       offset to place axis labels
+            axis_colors/ac: axis colors
+            text_colors/tc: label colors
+            radii/r:        axis radii
+            text/t:         label text
+            sizes/s:        label sizes
+            fonts/f:        label fonts'''
+        
+        if self._axes_reps:
+            for rep_id in self._axes_reps:
+                self.remove_representation(rep_id)
+            self._axes_reps = None
+        else:
+            if not isinstance(parameters,dict):
+                parameters={}
+                
+            def defaults(pdict,keys,default,length=3,instance=(int,float)):
+                '''Helper function to generate default values and handle errors'''
+                for k in keys:
+                    val=pdict.get(k)
+                    if val!=None:
+                        break
+                if val==None:
+                    val=default
+                elif isinstance(val,instance) and length>1:
+                    val = [val]*length
+                elif isinstance(val,(list,np.generic,np.ndarray)) and length>1:
+                    if not all([isinstance(v,instance) for v in val]):
+                        raise RuntimeError("Invalid type {t} for parameter {p}. Use {i}.".format(t=type(val),p=val,i=instance))
+                elif not isinstance(val,instance):
+                    raise RuntimeError("Invalid type {t} for parameter {p}. Use {i}.".format(t=type(val),p=val,i=instance))
+                return val
+                
+            p =  defaults(parameters,['positions','position','p'],np.average(self.coordinates,0))
+            l =  defaults(parameters,['lengths','length','l'],max([np.linalg.norm(x-p) for x in self.coordinates]),1)
+            o =  defaults(parameters,['offsets','offset','o'],l*1.05,1)
+            ac = defaults(parameters,[a+c for a in ['axis_','a',''] for c in ['colors','colours','color','colour','c']],[0xff0000,0x00ff00,0x0000ff],3,(int,hex))
+            tc = defaults(parameters,[a+c for a in ['text_','t',''] for c in ['colors','colours','color','colour','c']],[0xff0000,0x00ff00,0x0000ff],3,(int,hex))
+            r =  defaults(parameters,['radii','radius','r'],[0.005]*3,3)
+            t =  defaults(parameters,['text','labels','t'],['X','Y','Z'],3,str)
+            s =  defaults(parameters,['sizes','size','s'],[32]*3,3)
+            f =  defaults(parameters,['fonts','font','f'],['Arial']*3,3,str)
+            
+            starts=np.array([p,p,p],float)
+            ends=np.array([p+[l,0,0],p+[0,l,0],p+[0,0,l]],float)
+            axis_labels_coords=np.array([p+[o,0,0],p+[0,o,0],p+[0,0,o]],float)
+            
+            a_rep=self.add_representation('cylinders',{"startCoords":starts,
+                                                     "endCoords":ends,
+                                                     "colors":ac,
+                                                     "radii":r})
+            
+            t_rep=self.add_representation('text',{"coordinates":axis_labels_coords,
+                                                  "text":t,
+                                                  "colors":tc,
+                                                  "sizes":s,
+                                                  "fonts":f})
+            self._axes_reps = [a_rep, t_rep]
+            
     
     def lines(self):
         '''Display the system bonds as lines.
