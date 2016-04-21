@@ -24,7 +24,7 @@ class MolecularViewer(RepresentationViewer):
         self.coordinates = coordinates.astype('float32')
         self.topology = topology
 
-        self._axes_reps = None
+        self._axes_reps = []
 
     def points(self, size=1.0, highlight=None, colorlist=None):
         """Display the system as points.
@@ -78,7 +78,7 @@ class MolecularViewer(RepresentationViewer):
     def remove_labels(self):
         '''Remove all atomic labels from the system'''
         for rep_id in self.representations.keys():
-            if self.representations[rep_id]['rep_type']=='text':
+            if self.representations[rep_id]['rep_type']=='text' and rep_id not in self._axes_reps:
                 self.remove_representation(rep_id)
     
     def toggle_axes(self, parameters = None):
@@ -94,10 +94,10 @@ class MolecularViewer(RepresentationViewer):
             sizes/s:        label sizes
             fonts/f:        label fonts'''
         
-        if self._axes_reps:
+        if len(self._axes_reps)>0:
             for rep_id in self._axes_reps:
                 self.remove_representation(rep_id)
-            self._axes_reps = None
+            self._axes_reps = []
         else:
             if not isinstance(parameters,dict):
                 parameters={}
