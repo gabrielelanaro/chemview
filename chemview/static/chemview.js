@@ -200,9 +200,9 @@ define(function(require) {
 				cylinders: CylinderRepresentation,
 				spheres: SphereRepresentation,
 				smoothline: SmoothLineRepresentation,
-				smoothtube: SmoothTubeRepresentation
+				smoothtube: SmoothTubeRepresentation,
+				text: TextRepresentation
 			};
-
 
 			for (var key in json.representations) {
 				var rep = representationMap[json.representations[key].type].deserialize(
@@ -989,6 +989,137 @@ define(function(require) {
 	};
 
 
+	var TextRepresentation = function(coordinates, text, colors, sizes, fonts) {
+		// Initialize stuff for serialization
+		this.type = "text";
+		this.options = {
+			coordinates: coordinates,
+			text: text,
+			colors: colors,
+		};
+
+		var DEFAULT_COLOR = 0Xffff00;
+		var DEFAULT_SIZE = 32;
+		var DEFAULT_FONT = "Arial";
+
+		if (colors == undefined) {
+			var colors = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				colors.push(DEFAULT_COLOR);
+			}
+		}
+
+		if (sizes == undefined) {
+			var sizes = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				sizes.push(DEFAULT_SIZE);
+			}
+		}
+
+		if (fonts == undefined) {
+			var fonts = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				fonts.push(DEFAULT_FONT);
+			}
+		}
+
+		var colorList = [];
+		for (var i = 0; i < colors.length; i++) {
+			var c = new THREE.Color(colors[i]);
+			colorList.push(c);
+		}
+		
+        this.makeTextSprite = function( message, parameters ) {
+            //From https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
+			
+			var p = parameters;
+            var canvas = document.createElement('canvas');
+            canvas.height=512;
+            canvas.width=512;
+            var context = canvas.getContext('2d');
+
+            // get size data (height depends only on font size)
+            var metrics = context.measureText( message );
+            var textWidth = metrics.width;
+
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.font = "bold " + p.fontsize * 2 + "px " + p.fontface;	
+
+            // text color
+            context.fillStyle = "rgba(" + 255.0 * p.fontColor.r + "," + 255.0 * p.fontColor.g + ","
+                                          + 255.0 * p.fontColor.b + ",1.0)";
+            context.fillText( message, canvas.width / 2 , canvas.height  / 2 );
+
+            // canvas contents will be used for a texture
+            var texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+
+            var spriteMaterial = new THREE.SpriteMaterial( 
+                { map: texture } );
+            spriteMaterial.depthWrite = false
+            spriteMaterial.depthTest = false
+            var sprite = new THREE.Sprite( spriteMaterial );
+            sprite.scale.set(0.4,0.4,1);
+            return sprite;	
+        };
+		
+		sprites=[];
+		for (var i = 0; i < coordinates.length / 3; i++) {
+			var params = {fontColor: colorList[i], 
+						  fontsize: sizes[i],
+						  fontface: fonts[i]};
+		    var spritey = this.makeTextSprite(text[i], params);
+		    spritey.position.set(coordinates[3 * i + 0],coordinates[3 * i + 1],coordinates[3 * i + 2]);
+		    sprites.push( spritey );
+
+		};
+
+		this.update = function(options) {
+			if (options.coordinates != undefined) {
+				var coordinates = options.coordinates;
+
+				for (var i = 0; i < coordinates.length / 3; i++) {
+					for (var j = 0; j < sphereTemplate.vertices.length; j++) {
+						var vertex = new THREE.Vector3();
+
+						vertex.copy(sphereTemplate.vertices[j]);
+						vertex.multiplyScalar(radii[i]);
+						vertex.add(new THREE.Vector3(coordinates[3 * i + 0],
+							coordinates[3 * i + 1],
+							coordinates[3 * i + 2]));
+
+						var offset = i * sphereTemplate.vertices.length;
+						geometry.vertices[offset + j].copy(vertex);
+					}
+				}
+				geometry.verticesNeedUpdate = true;
+			}
+		};
+		
+
+		this.addToScene = function(scene) {
+			for (var i = 0; i < sprites.length; i++) {
+				scene.add(sprites[i]);
+			}
+		};
+
+		this.removeFromScene = function(scene) {
+			for (var i = 0; i < sprites.length; i++) {
+				scene.remove(sprites[i]);
+			}
+		};
+	};
+
+	TextRepresentation.deserialize = function(json) {
+		return new TextRepresentation(deserialize_array(json.options.coordinates),
+			deserialize_array(json.options.text),
+			deserialize_array(json.options.colors),
+			deserialize_array(json.options.sizes),
+			deserialize_array(json.options.fonts));
+	};
+
+
 	var RibbonRepresentation = function(coords, normals, color, resolution,
 		width, height,
 		arrow) {
@@ -1182,6 +1313,7 @@ define(function(require) {
 		SmoothLineRepresentation: SmoothLineRepresentation,
 		SmoothTubeRepresentation: SmoothTubeRepresentation,
 		CylinderRepresentation: CylinderRepresentation,
-		RibbonRepresentation: RibbonRepresentation
+		RibbonRepresentation: RibbonRepresentation,
+		TextRepresentation: TextRepresentation
 	};
 });
