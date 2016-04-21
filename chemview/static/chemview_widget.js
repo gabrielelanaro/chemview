@@ -45,7 +45,6 @@ define(['widgets/js/widget',
                 var canvas = $("<canvas/>"); // .height(HEIGHT).width(WIDTH);
                 var mv = new chemview.MolecularViewer(canvas);
                 console.log("Created molecularviewer");
-                console.log(this);
                 this.mv = mv;
                 this.mv.resize(WIDTH, HEIGHT);
 
@@ -252,7 +251,6 @@ define(['widgets/js/widget',
 
             /* We receive custom messages from our python conterpart with DOMWidget.send */
             on_msg: function(msg) {
-                console.log('Receving message');
                 if (msg.type == 'callMethod') {
                     if ( msg.methodName === 'dollyIn' ) {
                         this.mv.controls.dollyIn(msg.args.dollyScale)
@@ -267,14 +265,11 @@ define(['widgets/js/widget',
                     }    else if ( msg.methodName === 'reset' ) {
                         this.mv.controls.reset()
                     }    else {
-                        /* Moved this here to save memory - we don't want the log being filled up every time the controls are accessed */
-                        console.log('Receving message');
                         this[msg.methodName].call(this, msg.args);    
                     }
                 }
 
-                return MolecularView.__super__.update.apply(
-                    this);
+                return MolecularView.__super__.update.apply(this);
             },
 
             remove: function() {
@@ -353,10 +348,11 @@ define(['widgets/js/widget',
                         options.resolution, options.width,
                         options.height, options.arrow);
                     this.mv.addRepresentation(rep, repId);
-                } else if (type == 'labels') {
+                } else if (type == 'text') {
                     var rep = new c.TextRepresentation(
-                        options.coordinates, options.labels,
-                        options.colors);
+                        options.coordinates, options.text,
+                        options.colors, options.sizes,
+                        options.fonts);
                     this.mv.addRepresentation(rep, repId);
                 } else {
                     console.log("Undefined representation " +

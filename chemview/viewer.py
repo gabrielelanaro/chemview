@@ -54,29 +54,31 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
         
-    def labels(self, atom_labels=None, colors=None):
+    def labels(self, text=None, coordinates=None, colorlist=None, sizes=None, fonts=None):
         '''Display atomic labels for the system'''
-        if not atom_labels:
-            if len(self.topology.get('atom_types'))==len(self.coordinates):
-                atom_labels=[self.topology['atom_types'][i]+str(i+1) for i in range(len(self.coordinates))]
+        if not coordinates:
+            coordinates=self.coordinates
+        l=len(coordinates)
+        if not text:
+            if len(self.topology.get('atom_types'))==l:
+                text=[self.topology['atom_types'][i]+str(i+1) for i in range(l)]
             else:
-                atom_labels=[str(i+1) for i in range(len(self.coordinates))]
-        if not colors:
-            colors=[{"r":255,"g":255,"b":0,"a":1} for a in self.coordinates]
+                text=[str(i+1) for i in range(l)]
             
-        labels = self.add_representation('labels', {'coordinates': self.coordinates,
-                                           'labels': atom_labels,
-                                           'colors': colors})
-        def update(self=self, labels=labels):
-            self.update_representation(labels, {'coordinates': self.coordinates})
+        text_representation = self.add_representation('text', {'coordinates':   coordinates,
+                                                               'text':        text,
+                                                               'colors':      colorlist,
+                                                               'sizes':       sizes,
+                                                               'fonts':       fonts})
+        def update(self=self, text_representation=text_representation):
+            self.update_representation(text_representation, {'coordinates': coordinates})
         
         self.update_callbacks.append(update)
-        self.autozoom(self.coordinates)
         
     def remove_labels(self):
         '''Remove all atomic labels from the system'''
         for rep_id in self.representations.keys():
-            if self.representations[rep_id]['rep_type']=='labels':
+            if self.representations[rep_id]['rep_type']=='text':
                 self.remove_representation(rep_id)
     
     def lines(self):

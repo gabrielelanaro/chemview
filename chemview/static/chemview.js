@@ -201,7 +201,7 @@ define(function(require) {
 				spheres: SphereRepresentation,
 				smoothline: SmoothLineRepresentation,
 				smoothtube: SmoothTubeRepresentation,
-				labels: TextRepresentation
+				text: TextRepresentation
 			};
 
 			for (var key in json.representations) {
@@ -989,40 +989,53 @@ define(function(require) {
 	};
 
 
-	var TextRepresentation = function(coordinates, labels, colors) {
+	var TextRepresentation = function(coordinates, text, colors, sizes, fonts) {
 		// Initialize stuff for serialization
-		this.type = "labels";
+		this.type = "text";
 		this.options = {
 			coordinates: coordinates,
-			labels: labels,
+			text: text,
 			colors: colors,
 		};
+
+		var DEFAULT_COLOR = 0Xffff00;
+		var DEFAULT_SIZE = 32;
+		var DEFAULT_FONT = "Arial";
+
+		if (colors == undefined) {
+			var colors = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				colors.push(DEFAULT_COLOR);
+			}
+		}
+
+		if (sizes == undefined) {
+			var sizes = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				sizes.push(DEFAULT_SIZE);
+			}
+		}
+
+		if (fonts == undefined) {
+			var fonts = [];
+			for (var i = 0; i < coordinates.length / 3; i++) {
+				fonts.push(DEFAULT_FONT);
+			}
+		}
+
+		var colorList = [];
+		for (var i = 0; i < colors.length; i++) {
+			var c = new THREE.Color(colors[i]);
+			colorList.push(c);
+		}
 		
         this.makeTextSprite = function( message, parameters ) {
             //From https://stemkoski.github.io/Three.js/Sprite-Text-Labels.html
-            if ( parameters === undefined ) parameters = {};
-
-            var fontface = parameters.hasOwnProperty("fontface") ? 
-                parameters["fontface"] : "Arial";
-
-            var fontsize = parameters.hasOwnProperty("fontsize") ? 
-                parameters["fontsize"] : 18;
-
-            var borderThickness = parameters.hasOwnProperty("borderThickness") ? 
-                parameters["borderThickness"] : 4;
-
-            var borderColor = parameters.hasOwnProperty("borderColor") ?
-                parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
-
-            var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-                parameters["backgroundColor"] : { r:0, g:0, b:0, a:1.0 };
-
-            var fontColor = parameters.hasOwnProperty("fontColor") ?
-                parameters["fontColor"] : { r:255, g:255, b:255, a:1.0 };
 			
-			if ( fontColor === undefined ) fontColor = { r:255, g:255, b:255, a:1.0 };
-
+			var p = parameters;
             var canvas = document.createElement('canvas');
+            canvas.height=512;
+            canvas.width=512;
             var context = canvas.getContext('2d');
 
             // get size data (height depends only on font size)
@@ -1031,11 +1044,11 @@ define(function(require) {
 
             context.textAlign = 'center';
             context.textBaseline = 'middle';
-            context.font = "bold " + fontsize + "px " + fontface;	
+            context.font = "bold " + p.fontsize * 2 + "px " + p.fontface;	
 
             // text color
-            context.fillStyle = "rgba(" + fontColor.r + "," + fontColor.g + ","
-                                          + fontColor.b + "," + fontColor.a + ")";
+            context.fillStyle = "rgba(" + 255.0 * p.fontColor.r + "," + 255.0 * p.fontColor.g + ","
+                                          + 255.0 * p.fontColor.b + ",1.0)";
             context.fillText( message, canvas.width / 2 , canvas.height  / 2 );
 
             // canvas contents will be used for a texture
@@ -1047,32 +1060,16 @@ define(function(require) {
             spriteMaterial.depthWrite = false
             spriteMaterial.depthTest = false
             var sprite = new THREE.Sprite( spriteMaterial );
-            sprite.scale.set(0.1,0.1,1);
+            sprite.scale.set(0.4,0.4,1);
             return sprite;	
         };
-        //Uncomment to reset this.makeTextSprite
-		//this.makeTextSprite = undefined;
-
-        function roundRect(ctx, x, y, w, h, r) {
-			ctx.beginPath();
-			ctx.moveTo(x+r, y);
-			ctx.lineTo(x+w-r, y);
-			ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-			ctx.lineTo(x+w, y+h-r);
-			ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-			ctx.lineTo(x+r, y+h);
-			ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-			ctx.lineTo(x, y+r);
-			ctx.quadraticCurveTo(x, y, x+r, y);
-			ctx.closePath();
-			ctx.fill();
-			ctx.stroke();   
-		};
-
+		
 		sprites=[];
 		for (var i = 0; i < coordinates.length / 3; i++) {
-			var params = {fontColor: colors[i], fontsize: 128, backgroundColor: {r:0, g:0, b:0, a:0}, borderColor: {r:0, g:0, b:0, a:0}};
-		    var spritey = this.makeTextSprite(labels[i], params);
+			var params = {fontColor: colorList[i], 
+						  fontsize: sizes[i],
+						  fontface: fonts[i]};
+		    var spritey = this.makeTextSprite(text[i], params);
 		    spritey.position.set(coordinates[3 * i + 0],coordinates[3 * i + 1],coordinates[3 * i + 2]);
 		    sprites.push( spritey );
 
@@ -1116,8 +1113,10 @@ define(function(require) {
 
 	TextRepresentation.deserialize = function(json) {
 		return new TextRepresentation(deserialize_array(json.options.coordinates),
-			deserialize_array(json.options.labels),
-			deserialize_array(json.options.colors));
+			deserialize_array(json.options.text),
+			deserialize_array(json.options.colors),
+			deserialize_array(json.options.sizes),
+			deserialize_array(json.options.fonts));
 	};
 
 
