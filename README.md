@@ -9,6 +9,7 @@ Version: 0.6
 
 The new generation molecular viewer for the IPython notebook.
 
+
 # Installation
 
 Installing chemview with conda is fairly easy. First download anaconda (or miniconda):
@@ -50,3 +51,11 @@ At this point you are ready to go!
 
 You can try chemview on the test notebooks present in this distribution or head to the documentation
 http://chemview.readthedocs.org
+
+
+# Credits
+
+Many thanks to the project contributors:
+
+- Tristan Mackenzie
+- James Kermode
