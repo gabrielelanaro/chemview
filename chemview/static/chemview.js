@@ -223,12 +223,13 @@ define(function(require) {
 	 * :param list colors: a list of colors (one for each point) expressed as hexadecimal numbers
 	 * :param list sizes: a list of sizes for the points
 	 */
-	var PointsRepresentation = function(coordinates, colors, sizes, visible) {
+	var PointsRepresentation = function(coordinates, colors, opacity, sizes, visible) {
 		// Initialize stuff for serialization
 		this.type = "points";
 		this.options = {
 			'coordinates': coordinates,
 			'colors': colors,
+			'opacity': opacity,
 			'sizes': sizes
 		};
 
@@ -249,6 +250,13 @@ define(function(require) {
 			for (var i = 0; i < coordinates.length / 3; i++) {
 				colors.push(DEFAULT_COLOR);
 			}
+		}
+
+		if (opacity == undefined || opacity >= 1.0) {
+			var opacity = 1.0;
+			var transparent = false;
+		} else {
+			var transparent = true;
 		}
 
 
@@ -303,9 +311,9 @@ define(function(require) {
 	           if (length(gl_PointCoord*2.0 - 1.0) > 1.0)\
 	               discard;\
 	   		else if (length(gl_PointCoord*2.0 - 1.0) > 0.9)\
-	   		    gl_FragColor = vec4(outlineColor, 1.0);\
+	   		    gl_FragColor = vec4(outlineColor, " + opacity + ");\
 	   		else\
-	           	gl_FragColor = vec4( vColor,  1.0);\
+	           	gl_FragColor = vec4( vColor, " + opacity + ");\
 	       }\
 	       ";
 
@@ -319,7 +327,7 @@ define(function(require) {
 			},
 			vertexShader: vertex_shader,
 			fragmentShader: fragment_shader,
-			transparent: false
+			transparent: transparent
 		});
 		this.material = shaderMaterial;
 		// This is a parameter we need to scale things properly
@@ -377,6 +385,7 @@ define(function(require) {
 					type: "uint32",
 					data: encode(new Uint32Array(this.options.colors).buffer)
 				},
+				opacity: this.options.opacity,
 				sizes: {
 					type: "float32",
 					data: encode(new Float32Array(this.options.sizes).buffer)
@@ -389,6 +398,7 @@ define(function(require) {
 	PointsRepresentation.deserialize = function(json) {
 		return new PointsRepresentation(deserialize_array(json.options.coordinates),
 			deserialize_array(json.options.colors),
+			json.options.opacity,
 			deserialize_array(json.options.sizes));
 	};
 
@@ -571,18 +581,26 @@ define(function(require) {
 
 	/** Spheres
 	 */
-	var SphereRepresentation = function(coordinates, radii, colors, resolution) {
+	var SphereRepresentation = function(coordinates, radii, colors, opacity, resolution) {
 		// Initialize stuff for serialization
 		this.type = "spheres";
 		this.options = {
 			coordinates: coordinates,
 			radii: radii,
 			colors: colors,
+			opacity: opacity,
 			resolution: resolution
 		};
 
 		if (resolution == undefined)
 			resolution = 16;
+
+		if (opacity == undefined || opacity >= 1.0) {
+			var opacity = 1.0;
+			var transparent = false;
+		} else {
+			var transparent = true;
+		}
 
 		var sphereTemplate = new THREE.SphereGeometry(1, resolution, resolution); // Our template
 
@@ -614,6 +632,8 @@ define(function(require) {
 
 		var material = new THREE.MeshPhongMaterial({
 			color: 0xffffff,
+			transparent: transparent,
+			opacity: opacity,
 			vertexColors: THREE.VertexColors
 		});
 		this.mesh = new THREE.Mesh(geometry, material);
@@ -872,8 +892,7 @@ define(function(require) {
 	 * :param list radii:
 	 * :param list colors:
 	 */
-	var CylinderRepresentation = function(startCoords, endCoords, radii, colors,
-		resolution) {
+	var CylinderRepresentation = function(startCoords, endCoords, radii, colors, opacity, resolution) {
 		// Initialize stuff for serialization
 		this.type = "cylinders";
 		this.options = {
@@ -881,8 +900,16 @@ define(function(require) {
 			endCoords: endCoords,
 			radii: radii,
 			colors: colors,
+			opacity: opacity,
 			resolution: resolution
 		};
+		
+		if (opacity == undefined || opacity >= 1.0) {
+			var opacity = 1.0;
+			var isTransparent = false;
+		} else {
+			var isTransparent = true;
+		}
 
 		var resolution = (resolution != undefined) ? resolution : 16;
 		var cylinders = [];
@@ -901,6 +928,8 @@ define(function(require) {
 			var geometry = new THREE.CylinderGeometry(radii[i], radii[i], length,
 				resolution);
 			var material = new THREE.MeshPhongMaterial({
+				transparent: isTransparent,
+				opacity: opacity,
 				color: colors[i]
 			});
 
@@ -973,6 +1002,7 @@ define(function(require) {
 					type: "uint32",
 					data: encode(new Uint32Array(this.options.colors).buffer)
 				},
+				opacity: this.options.opacity,
 				resolution: this.options.resolution
 			};
 			return json;
@@ -985,6 +1015,7 @@ define(function(require) {
 			deserialize_array(json.options.endCoords),
 			deserialize_array(json.options.radii),
 			deserialize_array(json.options.colors),
+			json.options.opacity,
 			json.options.resolution);
 	};
 

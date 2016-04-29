@@ -154,7 +154,6 @@ class RepresentationViewer(DOMWidget):
         msg['type'] = 'callMethod'
         msg['methodName'] = method_name
         msg['args'] = serialize_to_dict(kwargs)
-
         if self.displayed is True:
             self.send(msg) # This will be received with View.on_msg
         else:
@@ -245,6 +244,8 @@ def check_points(options):
     if options.get("visible", None) is not None:
         # Careful! np.bool_ is not serializable!
         cleaned["visible"] = [bool(i) for i in options["visible"]]
+        
+    cleaned["opacity"]=options.get("opacity")
     
     return cleaned
 
