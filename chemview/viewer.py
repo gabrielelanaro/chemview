@@ -26,7 +26,7 @@ class MolecularViewer(RepresentationViewer):
 
         self._axes_reps = []
 
-    def points(self, size=1.0, highlight=None, colorlist=None):
+    def points(self, size=1.0, highlight=None, colorlist=None, opacity=1.0):
         """Display the system as points.
 
         :param float size: the size of the points.
@@ -46,7 +46,8 @@ class MolecularViewer(RepresentationViewer):
 
         points = self.add_representation('points', {'coordinates': self.coordinates.astype('float32'),
                                                     'colors': colorlist,
-                                                    'sizes': sizes })
+                                                    'sizes': sizes,
+                                                    'opacity': opacity})
         # Update closure
         def update(self=self, points=points):
             self.update_representation(points, {'coordinates': self.coordinates.astype('float32')})
@@ -54,12 +55,12 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
         
-    def labels(self, text=None, coordinates=None, colorlist=None, sizes=None, fonts=None):
+    def labels(self, text=None, coordinates=None, colorlist=None, sizes=None, fonts=None, opacity=1.0):
         '''Display atomic labels for the system'''
-        if not coordinates:
+        if coordinates is None:
             coordinates=self.coordinates
         l=len(coordinates)
-        if not text:
+        if text is None:
             if len(self.topology.get('atom_types'))==l:
                 text=[self.topology['atom_types'][i]+str(i+1) for i in range(l)]
             else:
@@ -69,7 +70,8 @@ class MolecularViewer(RepresentationViewer):
                                                                'text':        text,
                                                                'colors':      colorlist,
                                                                'sizes':       sizes,
-                                                               'fonts':       fonts})
+                                                               'fonts':       fonts,
+                                                               'opacity':     opacity})
         def update(self=self, text_representation=text_representation):
             self.update_representation(text_representation, {'coordinates': coordinates})
         
@@ -173,12 +175,12 @@ class MolecularViewer(RepresentationViewer):
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
 
-    def wireframe(self, pointsize=0.2):
+    def wireframe(self, pointsize=0.2, opacity=1.0):
         '''Display atoms as points of size *pointsize* and bonds as lines.'''
-        self.points(pointsize)
+        self.points(pointsize, opacity=opacity)
         self.lines()
 
-    def ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02, colorlist=None):
+    def ball_and_sticks(self, ball_radius=0.05, stick_radius=0.02, colorlist=None, opacity=1.0):
         """Display the system using a ball and stick representation.
         """
 
@@ -190,7 +192,8 @@ class MolecularViewer(RepresentationViewer):
 
         spheres = self.add_representation('spheres', {'coordinates': self.coordinates.astype('float32'),
                                                       'colors': colorlist,
-                                                      'radii': sizes})
+                                                      'radii': sizes,
+                                                      'opacity': opacity})
 
         def update(self=self, spheres=spheres):
             self.update_representation(spheres, {'coordinates': self.coordinates.astype('float32')})
@@ -201,10 +204,22 @@ class MolecularViewer(RepresentationViewer):
 
         if 'bonds' in self.topology and self.topology['bonds'] is not None:
             start_idx, end_idx = zip(*self.topology['bonds'])
-            cylinders = self.add_representation('cylinders', {'startCoords': self.coordinates[list(start_idx)].astype('float32'),
-                                                  'endCoords': self.coordinates[list(end_idx)].astype('float32'),
-                                                  'colors': [0xcccccc] * len(start_idx),
-                                                  'radii': [stick_radius] * len(start_idx)})
+            # Added this so bonds don't go through atoms when opacity<1.0
+            new_start_coords = []
+            new_end_coords = []
+            for bond_ind, bond in enumerate(self.topology['bonds']):
+                trim_amt = (ball_radius**2 - stick_radius**2)**0.5 if ball_radius>stick_radius else 0
+                start_coord = self.coordinates[bond[0]]
+                end_coord = self.coordinates[bond[1]]
+                vec = (end_coord-start_coord)/np.linalg.norm(end_coord-start_coord)
+                new_start_coords.append(start_coord+vec*trim_amt)
+                new_end_coords.append(end_coord-vec*trim_amt)
+
+            cylinders = self.add_representation('cylinders', {'startCoords': np.array(new_start_coords,dtype='float32'),
+                                                  'endCoords': np.array(new_end_coords,dtype='float32'),
+                                                  'colors': [0xcccccc] * len(new_start_coords),
+                                                  'radii': [stick_radius] * len(new_start_coords),
+                                                  'opacity': opacity})
             # Update closure
             def update(self=self, rep=cylinders, start_idx=start_idx, end_idx=end_idx):
                 self.update_representation(rep, {'startCoords': self.coordinates[list(start_idx)],

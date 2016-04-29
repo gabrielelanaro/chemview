@@ -303,7 +303,8 @@ define(['widgets/js/widget',
                 if (type == 'points') {
                     var rep = new c.PointsRepresentation(
                         options.coordinates, options.colors,
-                        options.sizes, options.visible);
+                        options.opacity, options.sizes, 
+                        options.visible);
                     this.mv.addRepresentation(rep, repId);
                 } else if (type == 'lines') {
                     var rep = new c.LineRepresentation(options.startCoords,
@@ -319,7 +320,8 @@ define(['widgets/js/widget',
                 } else if (type == 'spheres') {
                     var rep = new c.SphereRepresentation(
                         options.coordinates, options.radii,
-                        options.colors, options.resolution);
+                        options.colors, options.opacity,
+                        options.resolution);
                     this.mv.addRepresentation(rep, repId);
                 } else if (type == 'box') {
                     var rep = new c.BoxRepresentation(options.start,
@@ -339,7 +341,7 @@ define(['widgets/js/widget',
                     var rep = new c.CylinderRepresentation(
                         options.startCoords, options.endCoords,
                         options.radii, options.colors,
-                        options.resolution);
+                        options.opacity, options.resolution);
                     this.mv.addRepresentation(rep, repId);
                 } else if (type == 'ribbon') {
                     var rep = new c.RibbonRepresentation(
