@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import numpy as np
 from IPython.display import Image, Javascript, display
+import ipywidgets as widgets
 from ipywidgets.widgets import DOMWidget, widget_serialization
 from traitlets import (Any, Bool, Bytes, CBool, CFloat, CInt, CUnicode, Dict,
                        Enum, List, Tuple, Unicode)
@@ -16,15 +17,14 @@ from .export import serialize_to_dict
 
 __all__ = ['RepresentationViewer', "TrajectoryControls"]
 
-
+@widgets.register('chemview.RepresentationViewer')
 class RepresentationViewer(DOMWidget):
 
-    # Name of the javascript class which this widget syncs against on the
-    # browser side. To work correctly, this javascript class has to be
-    # registered and loaded in the browser before this widget is constructed
-    # (that's what enable_notebook() does)
-    _view_module = Unicode('nbextensions/chemview_widget', sync=True)
-    _view_name = Unicode('MolecularView', sync=True)
+    _view_name = Unicode('ChemviewView').tag(sync=True)
+    _model_name = Unicode('ChemviewModel').tag(sync=True)
+    _view_module = Unicode('jupyter-widget-chemview').tag(sync=True)
+    _model_module = Unicode('jupyter-widget-chemview').tag(sync=True)
+    
 
     width = CInt(sync=True)
     height = CInt(sync=True)

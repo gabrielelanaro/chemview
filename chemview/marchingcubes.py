@@ -100,7 +100,8 @@ def interpolate_edge_coordinates(point1, value1, point2, value2, isolevel):
     return point1 + (isolevel - value1) * (point2 - point1)/(value2 - value1)
 
 if numba_present:
-    marching_cubes = nb.jit('pyobject(f4[:, :, :], f4)')(marching_cubes)
+    # marching_cubes = nb.jit('pyobject(f4[:, :, :], f4)')(marching_cubes)
+    # marching_cubes = nb.jit()(marching_cubes)
     interpolate_edge_coordinates = nb.jit(interpolate_edge_coordinates)
 
 # Returns the vertices that make up an edge
