@@ -250,9 +250,12 @@ def check_points(options):
 
 checkers = {"points" : check_points }
 
+@widgets.register('chemview.TrajectoryControls')
 class TrajectoryControls(DOMWidget):
-    _view_module = Unicode('nbextensions/trajectory_controls_widget', sync=True)
-    _view_name = Unicode('TrajectoryControls', sync=True)
+    _view_name = Unicode('TrajectoryControlsView').tag(sync=True)
+    _model_name = Unicode('TrajectoryControlsModel').tag(sync=True)
+    _view_module = Unicode('jupyter-widget-chemview').tag(sync=True)
+    _model_module = Unicode('jupyter-widget-chemview').tag(sync=True)
 
     width = CInt(sync=True)
     
@@ -308,60 +311,3 @@ class TrajectoryControls(DOMWidget):
     def on_frame_change(self, callback):
         '''Connect a callback to be executed every time the frame attribute changes.'''
         self.on_trait_change(lambda name, old, new: callback(new), "frame")
-
-class Layout(DOMWidget):
-    
-    _view_module = Unicode("nbextensions/layout_widget", sync=True)
-    _view_name = Unicode("Layout", sync=True)
-    _model_name = Unicode("BoxModel", sync=True)
-    
-    children = Tuple(sync=True, **widget_serialization)
-    # width = CInt(sync=True)
-    # height = CInt(sync=True)
-    
-    def __init__(self, children, width=500, height=500):
-        super(Layout, self).__init__()
-        self.children = children
-        # self.width = width
-        # self.height = height
-
-
-# Backporting some extra widgets
-
-class FloatRangeWidget(DOMWidget):
-
-    #_view_module = Unicode('nbextensions/floatrange_widget', sync=True)
-    _view_name = Unicode('FloatRangeWidget', sync=True)
-
-    value = Tuple(CFloat, CFloat, default_value=(0.0, 1.0),
-                  help="Tuple of (lower, upper) bounds", sync=True)
-
-    min = CFloat(sync=True)
-    max = CFloat(sync=True)
-    step = CFloat(sync=True)
-
-    value_min = CFloat(sync=True)
-    value_max = CFloat(sync=True)
-
-    description = Unicode(sync=True)
-
-
-    def __init__(self, min=0.0, max=1.0, step=0.1, value_min=0.0, value_max=1.0):
-        super(FloatRangeWidget, self).__init__()
-
-        self.min = min
-        self.max = max
-        self.step = step
-        self.value_min = value_min
-        self.value_max = value_max
-
-        self.value = (self.value_min, self.value_max)
-
-        self.on_trait_change(self.on_value_max_change, "value_max")
-        self.on_trait_change(self.on_value_min_change, "value_min")
-
-    def on_value_max_change(self, name, old, new):
-        self.value = (self.value_min, self.value_max)
-
-    def on_value_min_change(self, name, old, new):
-        self.value = (self.value_min, self.value_max)

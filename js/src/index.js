@@ -7,6 +7,8 @@
 // dynamically.
 __webpack_public_path__ = document.querySelector('body').getAttribute('data-base-url') + 'nbextensions/jupyter-widget-chemview/';
 
+var $ = require('jquery');
+
 // Export widget models and views, and the npm package version number.
-module.exports = require('./widget-chemview.js');
+module.exports = $.extend(require('./widget-chemview.js'), require('./widget-trajectory-controls.js'));
 module.exports['version'] = require('../package.json').version;
