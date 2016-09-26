@@ -5,7 +5,7 @@ from chemview.scene import normalize_scene, ValidationError, POINTS_SCHEMA, SPHE
 
 def test_normalize_scene():
     coordinates = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 2]], dtype='float32')
-    scene = {'representations': [{"rep_id" : 1,
+    scene = {'representations': [{"rep_id" : "1",
                                   "rep_type" : 'points',
                                   "options" : {"coordinates": coordinates}}]}
     
@@ -27,7 +27,7 @@ def test_camera_validation():
 
 def test_points_validation():
     coordinates = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 2]], dtype='float32')
-    val = {"rep_id" : 1,
+    val = {"rep_id" : "1",
            "rep_type" : 'points',
            "options" : {"coordinates": coordinates}}
      
@@ -38,7 +38,7 @@ def test_points_validation():
 
 def test_spheres_validation():
     coordinates = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 2]], dtype='float32')
-    val = {"rep_id" : 1,
+    val = {"rep_id" : "1",
            "rep_type" : 'spheres',
            "options" : {"coordinates": coordinates}}
     
