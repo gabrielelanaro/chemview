@@ -53,7 +53,7 @@ The new jupyter also requires you to install the widget manually:
 
 At this point you are ready to go!
 
-    $ ipython notebook
+    $ jupyter notebook
 
 You can try chemview on the test notebooks present in this distribution or head to the documentation
 http://chemview.readthedocs.org
