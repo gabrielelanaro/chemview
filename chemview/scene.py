@@ -76,7 +76,7 @@ class UniqueID(Validator):
         raise ValueError("No default for this field")
 
     def validate(self, value):
-        return isinstance(value, int), 'UUid not valid'
+        return isinstance(value, str), 'uuid not valid, type is supposed to be {}, got {}'.format(str, type(value))
 
     def cast(self, value):
         return value

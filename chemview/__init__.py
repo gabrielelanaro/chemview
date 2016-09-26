@@ -1,6 +1,12 @@
-from .install import enable_notebook
+from ._version import version_info, __version__
 from .widget import RepresentationViewer
 from .viewer import MolecularViewer, TrajectoryControls
 from .trajectory import TrajectoryViewer
 
-__version__ = '0.6'
+def _jupyter_nbextension_paths():
+    return [{
+        'section': 'notebook',
+        'src': 'static',
+        'dest': 'jupyter-widget-chemview',
+        'require': 'jupyter-widget-chemview/extension'
+    }]
