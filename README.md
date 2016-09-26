@@ -43,6 +43,12 @@ It is also possible to install chemview using pip:
     cd chemview
     pip install .
 
+The new jupyter also requires you to install the widget manually:
+
+    jupyter nbextension enable widgetsnbextension --user --py
+    jupyter nbextension install --py --symlink chemview
+    jupyter nbextension enable --py  chemview
+
 ## Ready to go!
 
 At this point you are ready to go!
