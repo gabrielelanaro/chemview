@@ -27,16 +27,7 @@ then, you can install chemview directly from the binstar channel.
 
 or, for the development version you can manually install the dependencies:
 
-    $ conda install ipython-notebook numpy numba
-    $ pip install vapory
-    $ git clone https://github.com/gabrielelanaro/chemview
-    $ cd chemview
-    $ pip install .
-
-It is also possible to install chemview using pip:
-
-    pip install notebook # We support Jupyter 4.x
-    pip install numba numpy matplotlib
+    pip install jupyter notebook numba numpy matplotlib
 
     # Download and install chemview
     git clone https://github.com/gabrielelanaro/chemview
@@ -46,8 +37,8 @@ It is also possible to install chemview using pip:
 The new jupyter also requires you to install the widget manually:
 
     jupyter nbextension enable widgetsnbextension --user --py
-    jupyter nbextension install --py --symlink chemview
-    jupyter nbextension enable --py  chemview
+    jupyter nbextension install --user --py --symlink chemview
+    jupyter nbextension enable --user --py  chemview
 
 ## Ready to go!
 
