@@ -1,10 +1,10 @@
 package:
   name: chemview
-  version: !!str 0.3
+  version: !!str 0.7
 
 source:
   git_url: https://github.com/gabrielelanaro/chemview.git
-  git_tag: v0.3
+  git_tag: v0.7
 
 requirements:
   build:
@@ -14,7 +14,9 @@ requirements:
   run:
     - python
     - distribute
-    - ipython-notebook
+    - jupyter
+    - notebook
+    - matplotlib
     - numpy
     - numba
 
