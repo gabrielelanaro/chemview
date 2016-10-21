@@ -3,22 +3,28 @@ package:
   version: !!str 0.7
 
 source:
-  git_url: https://github.com/gabrielelanaro/chemview.git
-  git_tag: v0.7
+   path: ../
+#  git_url: https://github.com/gabrielelanaro/chemview.git
+#  git_tag: v0.7
+
+build:
+    number: 0
+    script: python setup.py install --single-version-externally-managed --record record.txt
 
 requirements:
   build:
     - python
-    - distribute
+    - setuptools
+    - jupyter
 
   run:
     - python
-    - distribute
+    - matplotlib
+    - ipywidgets
+    - numba
+    - numpy
     - jupyter
     - notebook
-    - matplotlib
-    - numpy
-    - numba
 
 test:
   imports:
@@ -27,4 +33,4 @@ test:
 about:
   home: http://chemview.rtfd.org
   license: GNU Lesser General Public License v2 or later (LGPLv2+)
-  summary: WebGL Molecular Viewer for IPython notebook.
+  summary: WebGL Molecular Viewer for Jupyter notebook.
