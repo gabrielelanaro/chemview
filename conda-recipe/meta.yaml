@@ -3,9 +3,8 @@ package:
   version: !!str 0.7
 
 source:
-   path: ../
-#  git_url: https://github.com/gabrielelanaro/chemview.git
-#  git_tag: v0.7
+  git_url: https://github.com/gabrielelanaro/chemview.git
+  git_tag: v0.7
 
 build:
     number: 0
