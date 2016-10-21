@@ -23,7 +23,7 @@ To install chemview using conda you can first create an environment (optional):
 
 then, you can install chemview directly from the binstar channel.
 
-    $ conda install -c http://conda.binstar.org/gabrielelanaro
+    $ conda install -c gabrielelanaro chemview
 
 or, for the development version you can manually install the dependencies:
 
