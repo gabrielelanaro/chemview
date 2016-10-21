@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/chemview/badge/?version=latest)](https://readthedocs.org/projects/chemview/?badge=latest)
 [![Build Status](https://travis-ci.org/gabrielelanaro/chemview.svg?branch=master)](https://travis-ci.org/gabrielelanaro/chemview)
 
-Version: 0.6
+Version: 0.7
 
 The new generation molecular viewer for the IPython notebook.
 
@@ -23,7 +23,7 @@ To install chemview using conda you can first create an environment (optional):
 
 then, you can install chemview directly from the binstar channel.
 
-    $ conda install -c http://conda.binstar.org/gabrielelanaro
+    $ conda install -c gabrielelanaro chemview
 
 or, for the development version you can manually install the dependencies:
 
