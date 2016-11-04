@@ -15,8 +15,7 @@ web using the chemlab_ API, then we create two molecular viewers and we link the
     from IPython.display import display
     from IPython.utils.traitlets import link
 
-    from chemview import enable_notebook, MolecularViewer
-    enable_notebook()
+    from chemview import MolecularViewer
 
     from chemlab.notebook import download_molecule
 
@@ -44,4 +43,3 @@ web using the chemlab_ API, then we create two molecular viewers and we link the
 
 Plotting molecular orbitals
 ---------------------------
-

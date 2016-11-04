@@ -4,8 +4,7 @@ cell:
 
 .. code:: python
 
-    from chemview import enable_notebook, MolecularViewer
-    enable_notebook()
+    from chemview import MolecularViewer
 
 
 The function enable\_notebook will load the necessary files to display

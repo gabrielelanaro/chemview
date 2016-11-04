@@ -2,7 +2,6 @@
 .. code:: python
 
     import chemview
-    chemview.enable_notebook()
     from chemview import RepresentationViewer
     from IPython.display import display
     import numpy as np
@@ -192,4 +191,3 @@
             self.add_vdw_surface(32)
     
     MyViewer(coordinates = alanine.r_array, atom_types=alanine.type_array, frames=100)
-

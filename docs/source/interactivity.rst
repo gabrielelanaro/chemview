@@ -6,8 +6,7 @@ In this section we'll see how to update the molecular viewer. We'll start by cre
 .. code:: python
 
     import numpy as np
-    from chemview import MolecularViewer, enable_notebook
-    enable_notebook()
+    from chemview import MolecularViewer
 
     # Draw a water molecule
     mv = MolecularViewer(np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
@@ -111,4 +110,3 @@ Screenshot:
 
 
 .. _mdtraj: http://mdtraj.org
-
