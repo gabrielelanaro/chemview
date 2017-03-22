@@ -27,9 +27,9 @@ var ChemviewModel = widgets.DOMWidgetModel.extend({
 
 
 var ChemviewView = widgets.DOMWidgetView.extend({
-    
+
     render: function() {
-        
+
         var WIDTH = this.model.get('width'),
             HEIGHT = this.model.get('height');
 
@@ -64,7 +64,10 @@ var ChemviewView = widgets.DOMWidgetView.extend({
         this.container = container;
 
         container.append(canvas);
-        this.setElement(container);
+        this.el.className = "jupyter-widget";
+        this.el.innerHTML = '';
+
+        this.el.appendChild(container.get(0));
         mv.renderer.setSize(WIDTH, HEIGHT);
 
         this.setupFullScreen(canvas, container);
@@ -258,7 +261,7 @@ var ChemviewView = widgets.DOMWidgetView.extend({
             }    else if ( msg.methodName === 'reset' ) {
                 this.mv.controls.reset()
             }    else {
-                this[msg.methodName].call(this, msg.args);    
+                this[msg.methodName].call(this, msg.args);
             }
         }
 
