@@ -9,7 +9,7 @@ var THREE = require('three');
 $ = require('jquery');
 $.slider = require('jquery-ui/ui/widgets/slider');
 $.button = require('jquery-ui/ui/widgets/button');
- 
+
 
 var TrajectoryControlsModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend({}, widgets.DOMWidgetModel.prototype.defaults, {
@@ -20,7 +20,7 @@ var TrajectoryControlsModel = widgets.DOMWidgetModel.extend({
     })
 });
 
- 
+
 var TrajectoryControlsView = widgets.DOMWidgetView.extend({
 
     render : function() {
@@ -36,18 +36,18 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
         tc.addClass("ui-widget-header")
           .addClass("ui-corner-all")
           .css({ padding: PADDING + "px", display: 'flex'});
-        tc.width(this.width - 2 * PADDING); 
-        
+        tc.width(this.width - 2 * PADDING);
+
         model.on("change:width", function () {
             tc.width(model.get("width") - 2 * PADDING);
         })
-        
-        
+
+
         var that = this;
         this.model.on("msg:custom", function (msg) {
             that.on_msg(msg);
         });
-        
+
         var slider = $('<div/>').slider({
             value: startFrame,
             max: this.model.get('n_frames'),
@@ -78,7 +78,7 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
                     that.running = false;
                 }
             });
-        
+
         playButton.width(this.height).height(this.height);
         playButton.css("float", "left");
         playButton.appendTo(tc);
@@ -94,7 +94,7 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
         model.on("change:frame", function () {
             frameIndicator.text(model.get("frame") + "/" + model.get("n_frames"));
         });
-        
+
         // We add an extra container for the slider just for the styling
         var sliderContainer = $("<div/>").css({ "margin": "4px 16px" ,
                                                 "flex-grow" : "1" });
@@ -107,7 +107,7 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
         // stupid
         var dummy = $('<div/>');
         tc.appendTo(dummy);
-        this.setElement(dummy);
+        this.el.appendChild(dummy.get(0));
         this.slider = slider;
         this.playButton = playButton;
     },
@@ -116,7 +116,7 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
         this.model.set("width", width);
         this.touch();
     },
-    
+
     update : function () {
         this.fps = this.model.get('fps');
 
@@ -154,13 +154,13 @@ var TrajectoryControlsView = widgets.DOMWidgetView.extend({
 
     fullscreen : function (args) {
         console.log("Applying fullscreen attached to" + args.model_id);
-        // Getting model 
+        // Getting model
         this.model.widget_manager.get_model(args.model_id)
             .then(function (result) {
                 console.log(result)
         });
     },
-    
+
     /* We receive custom messages from our python conterpart with DOMWidget.send */
     on_msg: function(msg) {
         if (msg.type == 'callMethod') {

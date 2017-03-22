@@ -51,10 +51,10 @@ class MolecularViewer(RepresentationViewer):
         # Update closure
         def update(self=self, points=points):
             self.update_representation(points, {'coordinates': self.coordinates.astype('float32')})
-            
+
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
-        
+
     def labels(self, text=None, coordinates=None, colorlist=None, sizes=None, fonts=None, opacity=1.0):
         '''Display atomic labels for the system'''
         if coordinates is None:
@@ -65,7 +65,7 @@ class MolecularViewer(RepresentationViewer):
                 text=[self.topology['atom_types'][i]+str(i+1) for i in range(l)]
             else:
                 text=[str(i+1) for i in range(l)]
-            
+
         text_representation = self.add_representation('text', {'coordinates':   coordinates,
                                                                'text':        text,
                                                                'colors':      colorlist,
@@ -74,15 +74,15 @@ class MolecularViewer(RepresentationViewer):
                                                                'opacity':     opacity})
         def update(self=self, text_representation=text_representation):
             self.update_representation(text_representation, {'coordinates': coordinates})
-        
+
         self.update_callbacks.append(update)
-        
+
     def remove_labels(self):
         '''Remove all atomic labels from the system'''
         for rep_id in self.representations.keys():
             if self.representations[rep_id]['rep_type']=='text' and rep_id not in self._axes_reps:
                 self.remove_representation(rep_id)
-    
+
     def toggle_axes(self, parameters = None):
         '''Toggle axes [x,y,z] on and off for the current representation
         Parameters: dictionary of parameters to control axes:
@@ -95,7 +95,7 @@ class MolecularViewer(RepresentationViewer):
             text/t:         label text
             sizes/s:        label sizes
             fonts/f:        label fonts'''
-        
+
         if len(self._axes_reps)>0:
             for rep_id in self._axes_reps:
                 self.remove_representation(rep_id)
@@ -103,7 +103,7 @@ class MolecularViewer(RepresentationViewer):
         else:
             if not isinstance(parameters,dict):
                 parameters={}
-                
+
             def defaults(pdict,keys,default,length=3,instance=(int,float)):
                 '''Helper function to generate default values and handle errors'''
                 for k in keys:
@@ -120,7 +120,7 @@ class MolecularViewer(RepresentationViewer):
                 elif not isinstance(val,instance):
                     raise RuntimeError("Invalid type {t} for parameter {p}. Use {i}.".format(t=type(val),p=val,i=instance))
                 return val
-                
+
             p =  defaults(parameters,['positions','position','p'],np.average(self.coordinates,0))
             l =  defaults(parameters,['lengths','length','l'],max([np.linalg.norm(x-p) for x in self.coordinates]),1)
             o =  defaults(parameters,['offsets','offset','o'],l*1.05,1)
@@ -130,24 +130,24 @@ class MolecularViewer(RepresentationViewer):
             t =  defaults(parameters,['text','labels','t'],['X','Y','Z'],3,str)
             s =  defaults(parameters,['sizes','size','s'],[32]*3,3)
             f =  defaults(parameters,['fonts','font','f'],['Arial']*3,3,str)
-            
+
             starts=np.array([p,p,p],float)
             ends=np.array([p+[l,0,0],p+[0,l,0],p+[0,0,l]],float)
             axis_labels_coords=np.array([p+[o,0,0],p+[0,o,0],p+[0,0,o]],float)
-            
+
             a_rep=self.add_representation('cylinders',{"startCoords":starts,
                                                      "endCoords":ends,
                                                      "colors":ac,
                                                      "radii":r})
-            
+
             t_rep=self.add_representation('text',{"coordinates":axis_labels_coords,
                                                   "text":t,
                                                   "colors":tc,
                                                   "sizes":s,
                                                   "fonts":f})
             self._axes_reps = [a_rep, t_rep]
-            
-    
+
+
     def lines(self):
         '''Display the system bonds as lines.
 
@@ -241,7 +241,7 @@ class MolecularViewer(RepresentationViewer):
         def update(self=self, smoothline=smoothline):
             self.update_representation(smoothline, {'coordinates': self.coordinates[backbone]})
         self.update_callbacks.append(update)
-        
+
         self.autozoom(self.coordinates)
 
     def cylinder_and_strand(self):
@@ -308,32 +308,32 @@ class MolecularViewer(RepresentationViewer):
 
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
-        
+
     def cartoon(self, cmap=None):
         '''Display a protein secondary structure as a pymol-like cartoon representation.
-        
-        :param cmap: is a dictionary that maps the secondary type 
-                    (H=helix, E=sheet, C=coil) to a hexadecimal color (0xffffff for white) 
+
+        :param cmap: is a dictionary that maps the secondary type
+                    (H=helix, E=sheet, C=coil) to a hexadecimal color (0xffffff for white)
         '''
         # Parse secondary structure
         top = self.topology
-        
-        geom = gg.GeomProteinCartoon(gg.Aes(xyz=self.coordinates, 
+
+        geom = gg.GeomProteinCartoon(gg.Aes(xyz=self.coordinates,
                                             types=top['atom_names'],
                                             secondary_type=top['secondary_structure']),
                                             cmap=cmap)
-        
+
         primitives = geom.produce(gg.Aes())
         ids = [self.add_representation(r['rep_type'], r['options']) for r in primitives]
-        
+
         def update(self=self, geom=geom, ids=ids):
             primitives = geom.produce(gg.Aes(xyz=self.coordinates))
-            [self.update_representation(id_, rep['options']) 
+            [self.update_representation(id_, rep_options)
                 for id_, rep_options in zip(ids, primitives)]
-        
+
         self.update_callbacks.append(update)
         self.autozoom(self.coordinates)
-    
+
     def _coordinates_changed(self, name, old, new):
         [c() for c in self.update_callbacks]
 
@@ -414,5 +414,5 @@ class MolecularViewer(RepresentationViewer):
                                                      'faces': faces.astype('int32'),
                                                      'style': style,
                                                      'color': color})
-             
+
         self.autozoom(verts)
