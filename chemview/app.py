@@ -1,4 +1,4 @@
-"""Tornado webapp for indipendent trajectory viewer"""
+"""Tornado webapp for independent trajectory viewer"""
 import os
 import sys
 
