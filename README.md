@@ -9,6 +9,11 @@ Version: 0.7
 
 The new generation molecular viewer for the IPython notebook.
 
+# Project Status
+
+chemview is not being maintained anymore. If you would like to adopt the project, let me know in an email! 
+
+As an alternative project, I recommend nglview https://github.com/arose/nglview
 
 # Installation
 
